@@ -14,40 +14,29 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import com.baeldung.model.Message;
-
-@ServerEndpoint(value = "/chat/{username}", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
+@ServerEndpoint(value = "/websocket")
 public class ChatEndpoint {
+
     private Session session;
     private static final Set<ChatEndpoint> chatEndpoints = new CopyOnWriteArraySet<>();
-    private static final HashMap<String, String> users = new HashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
+    public void onOpen(Session session) {
 
         this.session = session;
         chatEndpoints.add(this);
-        users.put(session.getId(), username);
-
-        Message message = new Message();
-        message.setFrom(username);
-        message.setContent("Connected!");
-        broadcast(message);
+        broadcast("CONNECTED " + session.getId());
     }
 
     @OnMessage
-    public void onMessage(Session session, Message message) {
-        message.setFrom(users.get(session.getId()));
+    public void onMessage(Session session, String message) {
         broadcast(message);
     }
 
     @OnClose
     public void onClose(Session session) {
         chatEndpoints.remove(this);
-        Message message = new Message();
-        message.setFrom(users.get(session.getId()));
-        message.setContent("Disconnected!");
-        broadcast(message);
+        broadcast("DISCONNECTED " + session.getId());
     }
 
     @OnError
@@ -55,19 +44,14 @@ public class ChatEndpoint {
         // Do error handling here
     }
 
-    private static void broadcast(Message message) {
+    private static void broadcast(String message) {
         for (ChatEndpoint endpoint : chatEndpoints) {
-            synchronized (endpoint) {
-                try {
-                    endpoint.session.getBasicRemote()
-                            .sendObject(message);
-                } catch (IOException | EncodeException e) {
-                    e.printStackTrace();
-                }
+            try {
+                endpoint.session.getBasicRemote().sendText(message);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
 }
-//web: java $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT target/*.war
-// --port $PORT
