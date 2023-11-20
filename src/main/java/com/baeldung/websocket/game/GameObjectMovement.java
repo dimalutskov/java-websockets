@@ -1,6 +1,8 @@
-package com.baeldung.websocket;
+package com.baeldung.websocket.game;
 
-public class UserMovement {
+import com.baeldung.websocket.MathUtils;
+
+public class GameObjectMovement {
 
     private float mCurX;
     private float mCurY;
@@ -8,17 +10,17 @@ public class UserMovement {
     private float mSpeed;
 
     // Adjustments
-    long mFullRotationTime; // Time to change angle on 360 degrees
-    float mSpeedChangeValue; // Max speed value which can be accelerated/decelerated value in 1 second
+    private long mFullRotationTime; // Time to change angle on 360 degrees
+    private float mSpeedChangeValue; // Max speed value which can be accelerated/decelerated value in 1 second
 
-    float mLastPassedDistance;
-    float mTotalPassedDistance;
+    private float mLastPassedDistance;
+    private float mTotalPassedDistance;
 
     // Keeps location values in float for calculating
-    float mCurrentAngle;
-    float mCurrentSpeed;
+    private float mCurrentAngle;
+    private float mCurrentSpeed;
 
-    long mLastStepTime;
+    private long mLastStepTime;
 
     void setAngle(int angle) {
         mRequiredAngle = angle;
@@ -26,6 +28,10 @@ public class UserMovement {
             // Change angle instantly otherwise it will be changed according to mChangeAngleTime
             mCurrentAngle = angle;
         }
+    }
+
+    public void setSpeed(float speed) {
+        mSpeed = speed;
     }
 
     void step(long time) {
