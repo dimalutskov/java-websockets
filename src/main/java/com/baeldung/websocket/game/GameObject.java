@@ -4,8 +4,8 @@ public class GameObject {
     private final String id;
     private final int type;
 
-    private float xPos;
-    private float yPos;
+    private int xPos;
+    private int yPos;
 
     private int angle;
     private float speed;
@@ -28,10 +28,16 @@ public class GameObject {
 
     void proceed(long time) {
         movement.step(time);
+        xPos = (int) movement.getCurX();
+        yPos = (int) movement.getCurY();
     }
 
     String getStateString() {
-        return id + "," + type + "," + xPos + "," + yPos;
+        return id + "," +
+                type + "," +
+                xPos + "," +
+                yPos + "," +
+                angle;
     }
 
 }

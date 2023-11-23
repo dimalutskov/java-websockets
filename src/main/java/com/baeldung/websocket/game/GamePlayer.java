@@ -1,17 +1,17 @@
 package com.baeldung.websocket.game;
 
-import com.baeldung.websocket.GameProtocol;
-
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GamePlayer extends GameObject {
     private final Session session;
 
-    private final List<String> pendingClientMessages = new ArrayList<>();
+    private final List<String> pendingClientMessages = new CopyOnWriteArrayList<>();
+
+    private final int maxSpeed = 20; // TODO
 
     public GamePlayer(Session session) {
         super(session.getId(), GameProtocol.GAME_OBJECT_TYPE_PLAYER);
@@ -31,10 +31,6 @@ public class GamePlayer extends GameObject {
         return Objects.hash(session.getId());
     }
 
-    void addPendingMessage(String message) {
-        pendingClientMessages.add(message);
-    }
-
     void send(String message) {
         try {
             session.getBasicRemote().sendText(message);
@@ -42,4 +38,33 @@ public class GamePlayer extends GameObject {
             e.printStackTrace();
         }
     }
+
+    public synchronized void addPendingMessage(String message) {
+        pendingClientMessages.add(message);
+    }
+
+    synchronized void handlePendingMessages() {
+        for (String message : pendingClientMessages) {
+            try {
+                handleMessage(message);
+            } catch (Exception e) {
+                System.out.println("Error parsing client message: " + message + ". " + e);
+            }
+        }
+        pendingClientMessages.clear();
+    }
+
+    private void handleMessage(String message) {
+        System.out.println("@@@ handleMessage: " + message);
+
+        String[] split = message.split(";");
+        switch (split[0])  {
+            case GameProtocol.CLIENT_MSG_MOVEMENT:
+                int angle = Integer.parseInt(split[2]);
+                int progress = Integer.parseInt(split[3]);
+                update(angle, maxSpeed * (progress / 100.0f));
+                break;
+        }
+    }
+
 }

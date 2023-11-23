@@ -15,25 +15,25 @@ public class WebSocketEndpoint {
 
     private static GameRoom sRoom = new GameRoom();
 
-    private GamePlayer user;
+    private GamePlayer player;
 
     @OnOpen
     public void onOpen(Session session) {
         System.out.println("@@@ onOpen " + this + " " + session.getId());
-        this.user = new GamePlayer(session);
-        sRoom.connectPlayer(user);
+        this.player = new GamePlayer(session);
+        sRoom.connectPlayer(player);
     }
 
     @OnMessage
     public void onMessage(Session session, String message) {
-
+        player.addPendingMessage(message);
     }
 
     @OnClose
     public void onClose(Session session) {
         System.out.println("@@@ onClose " + this + " " + session.getId());
 
-        sRoom.disconnectPlayer(user);
+        sRoom.disconnectPlayer(player);
     }
 
     @OnError

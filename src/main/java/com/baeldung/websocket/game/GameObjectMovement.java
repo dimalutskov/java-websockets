@@ -34,6 +34,14 @@ public class GameObjectMovement {
         mSpeed = speed;
     }
 
+    public float getCurX() {
+        return mCurX;
+    }
+
+    public float getCurY() {
+        return mCurY;
+    }
+
     void step(long time) {
         if (mLastStepTime == 0 || mSpeed == 0) {
             mLastStepTime = time;
@@ -53,6 +61,7 @@ public class GameObjectMovement {
         mCurY += resultDY;
 
         mTotalPassedDistance += mLastPassedDistance;
+        mLastStepTime = time;
     }
 
     private void calculateCurrentSpeed(long time) {
