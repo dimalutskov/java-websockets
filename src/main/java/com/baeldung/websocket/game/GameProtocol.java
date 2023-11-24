@@ -53,6 +53,7 @@ public class GameProtocol {
     public static final String CLIENT_MSG_SKILL_OFF = "skillOFF";
 
     /// DEBUG MESSAGES
+    public static final String CLIENT_MSG_SET_SERVER_DELAY = "setServerDelay";
     public static final String CLIENT_MSG_SET_SPEED = "setSpeed";
     public static final String CLIENT_MSG_SET_SHOT_SPEED = "setShotSpeed";
     public static final String CLIENT_MSG_SET_FIRE_RATE = "setFireRate";
@@ -63,6 +64,7 @@ public class GameProtocol {
 };
 
 // Client:
+// setServerDelay;200
 // move;0;180;50
 // skillON;0;1
 // skillOFF;0;1

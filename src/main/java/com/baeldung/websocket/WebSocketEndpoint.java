@@ -1,6 +1,7 @@
 package com.baeldung.websocket;
 
 import com.baeldung.websocket.game.GamePlayer;
+import com.baeldung.websocket.game.GameProtocol;
 import com.baeldung.websocket.game.GameRoom;
 
 import javax.websocket.OnClose;
@@ -27,6 +28,12 @@ public class WebSocketEndpoint {
     @OnMessage
     public void onMessage(Session session, String message) {
         player.addPendingMessage(message);
+
+        // TODO
+        String[] split = message.split(";");
+        if (split.length > 0 && split[0].equals(GameProtocol.CLIENT_MSG_SET_SERVER_DELAY)) {
+            sRoom.updateServerInterval(Long.parseLong(split[1]));
+        }
     }
 
     @OnClose

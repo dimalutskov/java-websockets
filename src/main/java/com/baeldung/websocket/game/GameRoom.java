@@ -82,4 +82,21 @@ public class GameRoom {
         }
     }
 
+    /// temp
+    public void updateServerInterval(long interval) {
+        if (gameProcessingTimer != null) {
+            gameProcessingTimer.cancel();
+        }
+
+        gameProcessingTimer = new Timer();
+        // Update game state task
+        gameProcessingTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                proceed();
+                broadcast();
+            }
+        }, 0, interval);
+    }
+
 }
