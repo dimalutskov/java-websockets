@@ -16,3 +16,5 @@ public class ServerApp implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent servletContextEvent) {}
 
 }
+// heroku git:remote -a dl-websockets
+// git push heroku master

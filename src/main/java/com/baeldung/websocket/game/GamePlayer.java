@@ -3,7 +3,9 @@ package com.baeldung.websocket.game;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GamePlayer extends GameObject {
@@ -11,7 +13,14 @@ public class GamePlayer extends GameObject {
 
     private final List<String> pendingClientMessages = new CopyOnWriteArrayList<>();
 
-    private final int maxSpeed = 20; // TODO
+    // key - skillId, value - skill activation timestamp
+    private Map<Integer, Long> activeSkills = new ConcurrentHashMap<>();
+
+    private int maxSpeed = 100; // TODO
+    private int shotSpeed = 200;
+    private long fireRate = 1000; // TODO
+    private long lastSkillTimestamp; // TODO
+    private long shotId = 0;
 
     public GamePlayer(Session session) {
         super(session.getId(), GameProtocol.GAME_OBJECT_TYPE_PLAYER);
@@ -59,12 +68,55 @@ public class GamePlayer extends GameObject {
 
         String[] split = message.split(";");
         switch (split[0])  {
-            case GameProtocol.CLIENT_MSG_MOVEMENT:
+            case GameProtocol.CLIENT_MSG_MOVEMENT: {
                 int angle = Integer.parseInt(split[2]);
                 int progress = Integer.parseInt(split[3]);
                 update(angle, maxSpeed * (progress / 100.0f));
                 break;
+            }
+
+            case GameProtocol.CLIENT_MSG_SKILL_ON: {
+                int skillId = Integer.parseInt(split[2]);
+                activeSkills.put(skillId, System.currentTimeMillis());
+                break;
+            }
+
+            case GameProtocol.CLIENT_MSG_SKILL_OFF: {
+                int skillId = Integer.parseInt(split[2]);
+                activeSkills.remove(skillId);
+                break;
+            }
+
+            // DEBUG
+            case GameProtocol.CLIENT_MSG_SET_SPEED: {
+                maxSpeed = Integer.parseInt(split[1]);
+                break;
+            }
+            case GameProtocol.CLIENT_MSG_SET_SHOT_SPEED: {
+                shotSpeed = Integer.parseInt(split[1]);
+                break;
+            }
+            case GameProtocol.CLIENT_MSG_SET_FIRE_RATE: {
+                fireRate = Integer.parseInt(split[1]);
+                break;
+            }
         }
     }
 
+    @Override
+    void proceed(long time, List<GameObject> objectsToAdd) {
+        super.proceed(time, objectsToAdd);
+
+        if (!activeSkills.isEmpty()) {
+            if (time - lastSkillTimestamp > fireRate) {
+                lastSkillTimestamp = time;
+                // Create shot object
+                GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, getX(), getY(), getAngle());
+                shot.update(getAngle(), shotSpeed);
+                shot.setDestroyTime(time + 5000);
+                objectsToAdd.add(shot);
+                shotId++;
+            }
+        }
+    }
 }

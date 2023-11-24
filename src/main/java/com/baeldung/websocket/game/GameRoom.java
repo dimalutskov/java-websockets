@@ -52,10 +52,16 @@ public class GameRoom {
         for (GamePlayer player : players) {
             player.handlePendingMessages();
         }
-        for (GameObject object : gameObjects) {
-            // Update state
-            object.proceed(time);
+        List<GameObject> objectsToAdd = new ArrayList<>();
+        Iterator<GameObject> objectsIt = gameObjects.listIterator();
+        while (objectsIt.hasNext()) {
+            GameObject object = objectsIt.next();
+            object.proceed(time, objectsToAdd);
+            if (object.isDestroyed()) {
+                objectsIt.remove();
+            }
         }
+        gameObjects.addAll(objectsToAdd);
         proceedIteration++;
     }
 
