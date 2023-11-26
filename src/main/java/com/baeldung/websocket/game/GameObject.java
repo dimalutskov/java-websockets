@@ -57,9 +57,10 @@ public class GameObject {
         this.destroyTime = destroyTime;
     }
 
-    void update(int angle, float speed) {
+    void update(long time, int angle, float speed) {
         movement.setAngle(angle);
         movement.setSpeed(speed);
+        movement.step(time);
     }
 
     void proceed(long time, List<GameObject> objectsToAdd) {

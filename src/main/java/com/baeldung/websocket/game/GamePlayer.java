@@ -65,7 +65,7 @@ public class GamePlayer extends GameObject {
             case GameProtocol.CLIENT_MSG_MOVEMENT: {
                 int angle = Integer.parseInt(split[2]);
                 int progress = Integer.parseInt(split[3]);
-                update(angle, maxSpeed * (progress / 100.0f));
+                update(time, angle, maxSpeed * (progress / 100.0f));
                 break;
             }
 
@@ -113,7 +113,7 @@ public class GamePlayer extends GameObject {
                 lastSkillTimestamp = time;
                 // Create shot object
                 GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, getX(), getY(), getAngle());
-                shot.update(getAngle(), shotSpeed);
+                shot.update(time, getAngle(), shotSpeed);
                 shot.setDestroyTime(time + 5000);
                 pendingObjects.add(shot);
                 shotId++;
