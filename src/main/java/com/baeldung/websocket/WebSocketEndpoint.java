@@ -27,7 +27,7 @@ public class WebSocketEndpoint {
 
     @OnMessage
     public void onMessage(Session session, String message) {
-        player.addPendingMessage(message);
+        sRoom.onClientMessage(player, message);
 
         // TODO
         String[] split = message.split(";");

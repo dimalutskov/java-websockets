@@ -4,16 +4,16 @@ import java.util.*;
 
 public class GameRoom {
 
-    private static final long UPDATE_GAME_STATE_INTERVAL = 1000;
+    private static final long UPDATE_STATE = 100;
+    private static final long BROADCAST_STATE_INTERVAL = 1000;
 
     // key - objectId
     private final List<GameObject> gameObjects = new ArrayList(100); // TODO
 
     private final List<GamePlayer> players = new ArrayList();
 
-    private final List<String> pendingServerMessages = new ArrayList<>();
-
     private Timer gameProcessingTimer;
+    private Timer stateBroadcastTimer;
 
     private long proceedIteration;
 
@@ -27,14 +27,21 @@ public class GameRoom {
                 @Override
                 public void run() {
                     proceed();
-                    broadcast();
                 }
-            }, 0, UPDATE_GAME_STATE_INTERVAL);
+            }, 0, UPDATE_STATE);
+            // Broadcast state
+            stateBroadcastTimer = new Timer();
+            stateBroadcastTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    broadcastState();
+                }
+            }, 0, BROADCAST_STATE_INTERVAL);
         }
-        // Connect message
-        pendingServerMessages.add(GameProtocol.SERVER_MSG_PLAYER_CONNECT + ";"  + player.getId());
         // Response to client
         player.send(GameProtocol.SERVER_MSG_CONNECT_ID + ";" + player.getId() + ";" + proceedIteration);
+        // Connect message
+        broadcast(GameProtocol.SERVER_MSG_PLAYER_CONNECT + ";"  + player.getId());
     }
 
     public synchronized void disconnectPlayer(GamePlayer player) {
@@ -42,16 +49,18 @@ public class GameRoom {
         gameObjects.remove(player);
         if (players.size() == 0) {
             if (gameProcessingTimer != null) gameProcessingTimer.cancel();
+            if (stateBroadcastTimer != null) stateBroadcastTimer.cancel();
         }
         // Disconnect message
-        pendingServerMessages.add(GameProtocol.SERVER_MSG_PLAYER_DISCONNECT + ";"  + player.getId());
+        broadcast(GameProtocol.SERVER_MSG_PLAYER_DISCONNECT + ";"  + player.getId());
+    }
+
+    public synchronized void onClientMessage(GamePlayer player, String message) {
+        player.onMessage(message);
     }
 
     private synchronized void proceed() {
         long time = System.currentTimeMillis();
-        for (GamePlayer player : players) {
-            player.handlePendingMessages();
-        }
         List<GameObject> objectsToAdd = new ArrayList<>();
         Iterator<GameObject> objectsIt = gameObjects.listIterator();
         while (objectsIt.hasNext()) {
@@ -65,7 +74,7 @@ public class GameRoom {
         proceedIteration++;
     }
 
-    private synchronized void broadcast() {
+    private synchronized void broadcastState() {
         StringBuilder state = new StringBuilder()
                 .append(GameProtocol.SERVER_MSG_STATE).append(";")
                 .append(proceedIteration).append(";");
@@ -73,30 +82,28 @@ public class GameRoom {
             state.append(object.getStateString()).append(";");
         }
         String stateString = state.toString();
+        broadcast(stateString);
+    }
+
+    private synchronized void broadcast(String message) {
         for (GamePlayer player : players) {
-            for (String serverMsg : pendingServerMessages) {
-                player.send(serverMsg);
-            }
-            pendingServerMessages.clear();
-            player.send(stateString);
+            player.send(message);
         }
     }
 
     /// temp
     public void updateServerInterval(long interval) {
-        if (gameProcessingTimer != null) {
-            gameProcessingTimer.cancel();
+        if (stateBroadcastTimer != null) {
+            stateBroadcastTimer.cancel();
         }
 
-        gameProcessingTimer = new Timer();
-        // Update game state task
-        gameProcessingTimer.schedule(new TimerTask() {
+        stateBroadcastTimer = new Timer();
+        stateBroadcastTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                proceed();
-                broadcast();
+                broadcastState();
             }
-        }, 0, interval);
+        }, 0, BROADCAST_STATE_INTERVAL);
     }
 
 }

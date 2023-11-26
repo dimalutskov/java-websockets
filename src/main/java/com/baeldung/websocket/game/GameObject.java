@@ -24,6 +24,9 @@ public class GameObject {
     public GameObject(String id, int type, int x, int y, int angle) {
         this.id = id;
         this.type = type;
+        this.xPos = x;
+        this.yPos = y;
+        this.angle = angle;
     }
 
     public String getId() {

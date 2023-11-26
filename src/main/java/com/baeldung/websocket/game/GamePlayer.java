@@ -2,16 +2,14 @@ package com.baeldung.websocket.game;
 
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GamePlayer extends GameObject {
     private final Session session;
-
-    private final List<String> pendingClientMessages = new CopyOnWriteArrayList<>();
 
     // key - skillId, value - skill activation timestamp
     private Map<Integer, Long> activeSkills = new ConcurrentHashMap<>();
@@ -21,6 +19,8 @@ public class GamePlayer extends GameObject {
     private long fireRate = 1000; // TODO
     private long lastSkillTimestamp; // TODO
     private long shotId = 0;
+
+    private List<GameObject> pendingObjects = new ArrayList<>();
 
     public GamePlayer(Session session) {
         super(session.getId(), GameProtocol.GAME_OBJECT_TYPE_PLAYER);
@@ -48,22 +48,16 @@ public class GamePlayer extends GameObject {
         }
     }
 
-    public synchronized void addPendingMessage(String message) {
-        pendingClientMessages.add(message);
-    }
-
-    synchronized void handlePendingMessages() {
-        for (String message : pendingClientMessages) {
-            try {
-                handleMessage(message);
-            } catch (Exception e) {
-                System.out.println("Error parsing client message: " + message + ". " + e);
-            }
+    public synchronized void onMessage(String message) {
+        try {
+            handleMessage(message);
+        } catch (Exception e) {
+            System.out.println("Error parsing client message: " + message + ". " + e);
         }
-        pendingClientMessages.clear();
     }
 
     private void handleMessage(String message) {
+        long time = System.currentTimeMillis();
         System.out.println("@@@ handleMessage: " + message);
 
         String[] split = message.split(";");
@@ -77,7 +71,8 @@ public class GamePlayer extends GameObject {
 
             case GameProtocol.CLIENT_MSG_SKILL_ON: {
                 int skillId = Integer.parseInt(split[2]);
-                activeSkills.put(skillId, System.currentTimeMillis());
+                activeSkills.put(skillId, time);
+                handleShot(time);
                 break;
             }
 
@@ -107,6 +102,12 @@ public class GamePlayer extends GameObject {
     void proceed(long time, List<GameObject> objectsToAdd) {
         super.proceed(time, objectsToAdd);
 
+        handleShot(time);
+        objectsToAdd.addAll(pendingObjects);
+        pendingObjects.clear();
+    }
+
+    private void handleShot(long time) {
         if (!activeSkills.isEmpty()) {
             if (time - lastSkillTimestamp > fireRate) {
                 lastSkillTimestamp = time;
@@ -114,9 +115,18 @@ public class GamePlayer extends GameObject {
                 GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, getX(), getY(), getAngle());
                 shot.update(getAngle(), shotSpeed);
                 shot.setDestroyTime(time + 5000);
-                objectsToAdd.add(shot);
+                pendingObjects.add(shot);
                 shotId++;
             }
+        }
+    }
+
+    static class PlayerMessage {
+        public final String message;
+        public final long timestamp;
+        PlayerMessage(String message, long timestamp) {
+            this.message = message;
+            this.timestamp = timestamp;
         }
     }
 }
