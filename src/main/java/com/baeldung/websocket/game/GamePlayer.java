@@ -117,6 +117,7 @@ public class GamePlayer extends GameObject {
                 shot.setDestroyTime(time + 5000);
                 pendingObjects.add(shot);
                 shotId++;
+                System.out.println("@@@ createdShotObject " + shotId);
             }
         }
     }

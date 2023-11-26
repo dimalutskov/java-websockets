@@ -4,8 +4,7 @@ import java.util.*;
 
 public class GameRoom {
 
-    private static final long UPDATE_STATE = 100;
-    private static final long BROADCAST_STATE_INTERVAL = 1000;
+    private static final long UPDATE_STATE = 1000;
 
     // key - objectId
     private final List<GameObject> gameObjects = new ArrayList(100); // TODO
@@ -13,7 +12,6 @@ public class GameRoom {
     private final List<GamePlayer> players = new ArrayList();
 
     private Timer gameProcessingTimer;
-    private Timer stateBroadcastTimer;
 
     private long proceedIteration;
 
@@ -27,16 +25,9 @@ public class GameRoom {
                 @Override
                 public void run() {
                     proceed();
-                }
-            }, 0, UPDATE_STATE);
-            // Broadcast state
-            stateBroadcastTimer = new Timer();
-            stateBroadcastTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
                     broadcastState();
                 }
-            }, 0, BROADCAST_STATE_INTERVAL);
+            }, 0, UPDATE_STATE);
         }
         // Response to client
         player.send(GameProtocol.SERVER_MSG_CONNECT_ID + ";" + player.getId() + ";" + proceedIteration);
@@ -49,7 +40,6 @@ public class GameRoom {
         gameObjects.remove(player);
         if (players.size() == 0) {
             if (gameProcessingTimer != null) gameProcessingTimer.cancel();
-            if (stateBroadcastTimer != null) stateBroadcastTimer.cancel();
         }
         // Disconnect message
         broadcast(GameProtocol.SERVER_MSG_PLAYER_DISCONNECT + ";"  + player.getId());
@@ -93,17 +83,17 @@ public class GameRoom {
 
     /// temp
     public void updateServerInterval(long interval) {
-        if (stateBroadcastTimer != null) {
-            stateBroadcastTimer.cancel();
+        if (gameProcessingTimer != null) {
+            gameProcessingTimer.cancel();
         }
 
-        stateBroadcastTimer = new Timer();
-        stateBroadcastTimer.schedule(new TimerTask() {
+        gameProcessingTimer = new Timer();
+        gameProcessingTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 broadcastState();
             }
-        }, 0, BROADCAST_STATE_INTERVAL);
+        }, 0, UPDATE_STATE);
     }
 
 }
