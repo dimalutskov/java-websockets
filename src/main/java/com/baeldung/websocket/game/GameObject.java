@@ -6,6 +6,9 @@ public class GameObject {
     private final String id;
     private final int type;
 
+    private int health;
+    private int energy;
+
     private int xPos;
     private int yPos;
 
@@ -57,10 +60,10 @@ public class GameObject {
         this.destroyTime = destroyTime;
     }
 
-    void update(long time, int angle, float speed) {
+    void update(long time, int x, int y, int angle, float speed) {
+        movement.update(x, y);
         movement.setAngle(angle);
         movement.setSpeed(speed);
-        movement.step(time);
     }
 
     void proceed(long time, List<GameObject> objectsToAdd) {
@@ -75,6 +78,8 @@ public class GameObject {
     String getStateString() {
         return id + "," +
                 type + "," +
+                health + "," +
+                energy + "," +
                 xPos + "," +
                 yPos + "," +
                 angle;

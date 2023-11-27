@@ -34,6 +34,11 @@ public class GameObjectMovement {
         mSpeed = speed;
     }
 
+    public void update(float x, float y) {
+        mCurX = x;
+        mCurY = y;
+    }
+
     public float getCurX() {
         return mCurX;
     }

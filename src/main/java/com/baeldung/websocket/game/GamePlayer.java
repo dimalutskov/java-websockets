@@ -4,20 +4,12 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class GamePlayer extends GameObject {
     private final Session session;
 
-    // key - skillId, value - skill activation timestamp
-    private Map<Integer, Long> activeSkills = new ConcurrentHashMap<>();
-
-    private int maxSpeed = 100; // TODO
-    private int shotSpeed = 200;
-    private long fireRate = 1000; // TODO
-    private long lastSkillTimestamp; // TODO
+    private int shotSpeed = 300; // TODO
     private long shotId = 0;
 
     private List<GameObject> pendingObjects = new ArrayList<>();
@@ -63,38 +55,30 @@ public class GamePlayer extends GameObject {
         String[] split = message.split(";");
         switch (split[0])  {
             case GameProtocol.CLIENT_MSG_MOVEMENT: {
-                int angle = Integer.parseInt(split[2]);
-                int progress = Integer.parseInt(split[3]);
-                update(time, angle, maxSpeed * (progress / 100.0f));
+                int x = Integer.parseInt(split[2]);
+                int y = Integer.parseInt(split[3]);
+                int angle = Integer.parseInt(split[4]);
+                int speed = Integer.parseInt(split[5]);
+                update(time, x, y, angle, speed);
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_ON: {
                 int skillId = Integer.parseInt(split[2]);
-                activeSkills.put(skillId, time);
-                handleShot(time);
+                if (true) { // TODO Shot skill
+                    int x = Integer.parseInt(split[3]);
+                    int y = Integer.parseInt(split[4]);
+                    int angle = Integer.parseInt(split[5]);
+                    handleShot(time, x, y, angle);
+                }
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_OFF: {
                 int skillId = Integer.parseInt(split[2]);
-                activeSkills.remove(skillId);
                 break;
             }
 
-            // DEBUG
-            case GameProtocol.CLIENT_MSG_SET_SPEED: {
-                maxSpeed = Integer.parseInt(split[1]);
-                break;
-            }
-            case GameProtocol.CLIENT_MSG_SET_SHOT_SPEED: {
-                shotSpeed = Integer.parseInt(split[1]);
-                break;
-            }
-            case GameProtocol.CLIENT_MSG_SET_FIRE_RATE: {
-                fireRate = Integer.parseInt(split[1]);
-                break;
-            }
         }
     }
 
@@ -102,24 +86,21 @@ public class GamePlayer extends GameObject {
     void proceed(long time, List<GameObject> objectsToAdd) {
         super.proceed(time, objectsToAdd);
 
-        handleShot(time);
+        for (GameObject obj : pendingObjects) {
+            obj.proceed(time, objectsToAdd);
+        }
         objectsToAdd.addAll(pendingObjects);
         pendingObjects.clear();
     }
 
-    private void handleShot(long time) {
-        if (!activeSkills.isEmpty()) {
-            if (time - lastSkillTimestamp > fireRate) {
-                lastSkillTimestamp = time;
-                // Create shot object
-                GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, getX(), getY(), getAngle());
-                shot.update(time, getAngle(), shotSpeed);
-                shot.setDestroyTime(time + 5000);
-                pendingObjects.add(shot);
-                shotId++;
-                System.out.println("@@@ createdShotObject " + shotId);
-            }
-        }
+    private void handleShot(long time, int x, int y, int angle) {
+        // Create shot object
+        GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, x, y, angle);
+        shot.update(time, shot.getX(), shot.getY(), getAngle(), shotSpeed);
+        shot.setDestroyTime(time + 5000);
+        pendingObjects.add(shot);
+        shotId++;
+        System.out.println("@@@ createdShotObject " + shotId);
     }
 
     static class PlayerMessage {

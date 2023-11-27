@@ -31,8 +31,8 @@ public class GameRoom {
         }
         // Response to client
         player.send(GameProtocol.SERVER_MSG_CONNECT_ID + ";" + player.getId() + ";" + proceedIteration);
-        // Connect message
-        broadcast(GameProtocol.SERVER_MSG_PLAYER_CONNECT + ";"  + player.getId());
+
+        onObjectAdded(player);
     }
 
     public synchronized void disconnectPlayer(GamePlayer player) {
@@ -42,7 +42,7 @@ public class GameRoom {
             if (gameProcessingTimer != null) gameProcessingTimer.cancel();
         }
         // Disconnect message
-        broadcast(GameProtocol.SERVER_MSG_PLAYER_DISCONNECT + ";"  + player.getId());
+        onObjectDestroyed(player);
     }
 
     public synchronized void onClientMessage(GamePlayer player, String message) {
@@ -58,10 +58,22 @@ public class GameRoom {
             object.proceed(time, objectsToAdd);
             if (object.isDestroyed()) {
                 objectsIt.remove();
+                onObjectDestroyed(object);
             }
         }
-        gameObjects.addAll(objectsToAdd);
+        for (GameObject addedObject : objectsToAdd) {
+            gameObjects.add(addedObject);
+            onObjectAdded(addedObject);
+        }
         proceedIteration++;
+    }
+
+    private void onObjectAdded(GameObject object) {
+        broadcast(GameProtocol.SERVER_MSG_OBJECT_ADDED + ";" + object.getStateString());
+    }
+
+    private void onObjectDestroyed(GameObject object) {
+        broadcast(GameProtocol.SERVER_MSG_OBJECT_DESTROYED + ";" + object.getStateString());
     }
 
     private synchronized void broadcastState() {
@@ -91,6 +103,7 @@ public class GameRoom {
         gameProcessingTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                proceed();
                 broadcastState();
             }
         }, 0, UPDATE_STATE);
