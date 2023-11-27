@@ -96,11 +96,11 @@ public class GamePlayer extends GameObject {
     private void handleShot(long time, int x, int y, int angle) {
         // Create shot object
         GameObject shot = new GameObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, x, y, angle);
-        shot.update(time, shot.getX(), shot.getY(), getAngle(), shotSpeed);
+        shot.update(time, x, y, angle, shotSpeed);
         shot.setDestroyTime(time + 5000);
         pendingObjects.add(shot);
         shotId++;
-        System.out.println("@@@ createdShotObject " + shotId);
+        System.out.println("@@@ createdShotObject " + shotId + " angle: " + angle);
     }
 
     static class PlayerMessage {

@@ -13,7 +13,7 @@ public class GameObject {
     private int yPos;
 
     private int angle;
-    private float speed;
+    private int speed;
 
     private long destroyTime;
     private boolean isDestroyed;
@@ -60,10 +60,11 @@ public class GameObject {
         this.destroyTime = destroyTime;
     }
 
-    void update(long time, int x, int y, int angle, float speed) {
+    void update(long time, int x, int y, int angle, int speed) {
         movement.update(x, y);
         movement.setAngle(angle);
         movement.setSpeed(speed);
+        movement.step(time);
     }
 
     void proceed(long time, List<GameObject> objectsToAdd) {
@@ -82,7 +83,8 @@ public class GameObject {
                 energy + "," +
                 xPos + "," +
                 yPos + "," +
-                angle;
+                angle + "," +
+                speed;
     }
 
 }
