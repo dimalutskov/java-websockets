@@ -2,7 +2,7 @@ package com.baeldung.websocket;
 
 import com.baeldung.websocket.game.GamePlayer;
 import com.baeldung.websocket.game.GameProtocol;
-import com.baeldung.websocket.game.GameRoom;
+import com.baeldung.websocket.game.WorldRoom;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -14,7 +14,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/websocket")
 public class WebSocketEndpoint {
 
-    private static GameRoom sRoom = new GameRoom();
+    private static WorldRoom sRoom = new WorldRoom();
 
     private GamePlayer player;
 

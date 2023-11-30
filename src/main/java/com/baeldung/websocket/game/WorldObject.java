@@ -2,34 +2,34 @@ package com.baeldung.websocket.game;
 
 import java.util.List;
 
-public class GameObject {
+public class WorldObject {
     private final String id;
     private final int type;
-
-    private int health;
-    private int energy;
 
     private int xPos;
     private int yPos;
 
     private int angle;
-    private int speed;
 
     private long destroyTime;
     private boolean isDestroyed;
 
     private GameObjectMovement movement = new GameObjectMovement();
 
-    public GameObject(String id, int type) {
+    public WorldObject(String id, int type) {
         this(id, type, 0, 0, 0);
     }
 
-    public GameObject(String id, int type, int x, int y, int angle) {
+    public WorldObject(String id, int type, int x, int y, int angle) {
         this.id = id;
         this.type = type;
         this.xPos = x;
         this.yPos = y;
         this.angle = angle;
+    }
+
+    public WorldObject copy() {
+        return new WorldObject(id, type, xPos, yPos, angle);
     }
 
     public String getId() {
@@ -67,7 +67,7 @@ public class GameObject {
         movement.step(time);
     }
 
-    void proceed(long time, List<GameObject> objectsToAdd) {
+    void proceed(long time, List<WorldObject> objectsToAdd) {
         movement.step(time);
         xPos = (int) movement.getCurX();
         yPos = (int) movement.getCurY();
@@ -79,12 +79,9 @@ public class GameObject {
     String getStateString() {
         return id + "," +
                 type + "," +
-                health + "," +
-                energy + "," +
                 xPos + "," +
                 yPos + "," +
-                angle + "," +
-                speed;
+                angle + ",";
     }
 
 }
