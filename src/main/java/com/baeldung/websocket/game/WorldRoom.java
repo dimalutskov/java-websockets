@@ -162,21 +162,37 @@ public class WorldRoom {
     }
     private void updateTestObjects(long time) {
         for (WorldObject obj : testObjects) {
+            double angle = 0;
             if (obj.getX() > 500) {
-                int angle = (int) (180 + 180 * Math.random());
-                obj.update(time, angle);
+                if (obj.getY() < 0) {
+                    angle = 270 - 90 * Math.random();
+                } else {
+                    angle = 270 + 90 * Math.random();
+                }
             }
             if (obj.getX() < -500) {
-                int angle = (int) (0 + 180 * Math.random());
-                obj.update(time, angle);
+                if (obj.getY() < 0) {
+                    angle = 90 + 90 * Math.random();
+                } else {
+                    angle = 90 - 90 * Math.random();
+                }
             }
             if (obj.getY() > 500) {
-                int angle = (int) (0 + 90 * Math.random());
-                obj.update(time, angle);
+                if (obj.getX() < 0) {
+                    angle = 0 + 90 * Math.random();
+                } else {
+                    angle = 270 + 90 * Math.random();
+                }
             }
             if (obj.getY() < - 500) {
-                int angle = (int) (90 + 180 * Math.random());
-                obj.update(time, angle);
+                if (obj.getX() < 0) {
+                    angle = 90 + 90 * Math.random();
+                } else {
+                    angle = 180 + 90 * Math.random();
+                }
+            }
+            if (angle != 0) {
+                obj.update(time, (int) angle);
             }
         }
     }
