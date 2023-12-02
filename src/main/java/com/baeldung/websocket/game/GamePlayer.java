@@ -41,6 +41,7 @@ public class GamePlayer extends WorldObject {
     }
 
     public synchronized void onMessage(String[] split, List<WorldObject> objectsToAdd) {
+        long time = System.currentTimeMillis();
         switch (split[0])  {
             case GameProtocol.CLIENT_MSG_MOVEMENT: {
                 int x = Integer.parseInt(split[2]);

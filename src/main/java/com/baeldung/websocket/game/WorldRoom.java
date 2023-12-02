@@ -17,13 +17,17 @@ public class WorldRoom {
 
     private Timer gameProcessingTimer;
 
+    public WorldRoom() {
+        addTestObjects();
+    }
+
     public synchronized void connectPlayer(GamePlayer player) {
         players.add(player);
         gameObjects.add(player);
         if (players.size() == 1) {
             gameProcessingTimer = new Timer();
             // Update game state task
-            gameProcessingTimer.schedule(new TimerTask() {
+            gameProcessingTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
                     long time = System.currentTimeMillis();
@@ -86,6 +90,8 @@ public class WorldRoom {
             gameObjects.add(addedObject);
             onObjectAdded(addedObject, time);
         }
+
+        updateTestObjects(time);
     }
 
     private void onObjectAdded(WorldObject object, long time) {
@@ -129,7 +135,7 @@ public class WorldRoom {
         }
 
         gameProcessingTimer = new Timer();
-        gameProcessingTimer.schedule(new TimerTask() {
+        gameProcessingTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 long time = System.currentTimeMillis();
@@ -137,6 +143,42 @@ public class WorldRoom {
                 updateWorldState(time);
             }
         }, 0, interval);
+    }
+
+
+    private List<WorldObject> testObjects = new ArrayList<>();
+    private void addTestObjects() {
+        for (int i = 0; i < 2; i++) {
+            String id = "test_" + i;
+            WorldObject object = new WorldObject(id, GameProtocol.GAME_OBJECT_TYPE_NPC);
+            int x = (int) (200 * Math.random());
+            int y = (int) (200 * Math.random());
+            int angle = (int) (180 * Math.random());
+            int speed = (int) (30 + 50 * Math.random());
+            object.update(System.currentTimeMillis(), x, y, angle, speed);
+            testObjects.add(object);
+            gameObjects.add(object);
+        }
+    }
+    private void updateTestObjects(long time) {
+        for (WorldObject obj : testObjects) {
+            if (obj.getX() > 500) {
+                int angle = (int) (180 + 180 * Math.random());
+                obj.update(time, angle);
+            }
+            if (obj.getX() < -500) {
+                int angle = (int) (0 + 180 * Math.random());
+                obj.update(time, angle);
+            }
+            if (obj.getY() > 500) {
+                int angle = (int) (0 + 90 * Math.random());
+                obj.update(time, angle);
+            }
+            if (obj.getY() < - 500) {
+                int angle = (int) (90 + 180 * Math.random());
+                obj.update(time, angle);
+            }
+        }
     }
 
 }

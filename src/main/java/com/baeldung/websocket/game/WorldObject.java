@@ -62,6 +62,15 @@ public class WorldObject {
 
     void update(long time, int x, int y, int angle, int speed) {
         movement.update(x, y);
+        update(time, angle, speed);
+    }
+
+    void update(long time, int angle) {
+        movement.setAngle(angle);
+        movement.step(time);
+    }
+
+    void update(long time, int angle, int speed) {
         movement.setAngle(angle);
         movement.setSpeed(speed);
         movement.step(time);
