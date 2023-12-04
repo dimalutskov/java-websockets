@@ -2,23 +2,28 @@ package com.baeldung.websocket.game;
 
 import java.util.*;
 
-public class WorldRoom {
+public class GameRoom {
 
     private static final int WORLD_STATES_KEEP_COUNT = 3;
 
     private static final long UPDATE_STATE = 1000;
 
-    // key - objectId
-    private final List<WorldObject> gameObjects = new ArrayList(100); // TODO
+    private final String id;
 
+    private final List<WorldObject> gameObjects = new ArrayList(100); // TODO
     private final List<GamePlayer> players = new ArrayList();
 
     private final List<WorldState> worldStates = new ArrayList<>();
 
     private Timer gameProcessingTimer;
 
-    public WorldRoom() {
+    public GameRoom(String id) {
+        this.id = id;
         addTestObjects();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public synchronized void connectPlayer(GamePlayer player) {
@@ -38,8 +43,9 @@ public class WorldRoom {
         }
         // Response to client
         String serverInfo = System.currentTimeMillis() + "," + UPDATE_STATE;
-        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + player.getId() + ";" + serverInfo + ";"); // TODO world state
-
+        String playerInfo = PlayerInfo.defaultInfo().toString();
+        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";" + player.getId() + ";" +  playerInfo + ";");
+        // Send last state???
         onObjectAdded(player, System.currentTimeMillis());
     }
 

@@ -48,17 +48,19 @@ public class GamePlayer extends WorldObject {
                 int y = Integer.parseInt(split[3]);
                 int angle = Integer.parseInt(split[4]);
                 int speed = Integer.parseInt(split[5]);
+                // TODO Check cheats
                 update(time, x, y, angle, speed);
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_ON: {
+                long serverTime = Long.parseLong(split[1]);
                 int skillId = Integer.parseInt(split[2]);
-                if (true) { // TODO Shot skill
+                if (skillId == GameProtocol.SKILL_ID_SHOT) {
                     int x = Integer.parseInt(split[3]);
                     int y = Integer.parseInt(split[4]);
                     int angle = Integer.parseInt(split[5]);
-                    objectsToAdd.add(handleShot(time, x, y, angle));
+                    objectsToAdd.add(handleShot(serverTime, x, y, angle));
                 }
                 break;
             }
