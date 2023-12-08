@@ -3,6 +3,7 @@ package com.dlapp.spaceships.game.entity;
 public class EntityInfluence {
 
     public static final int TYPE_SINGLE_ENERGY_CONSUMPTION = 1;
+    public static final int TYPE_SINGLE_DAMAGE = 2;
 
     public static final int TYPE_CONTINUOUS_ENERGY_CONSUMPTION = 101;
 

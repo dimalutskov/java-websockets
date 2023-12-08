@@ -51,6 +51,10 @@ public class WorldAliveEntity extends WorldEntity {
                 energy -= influence.values[0];
                 return true;
 
+            case EntityInfluence.TYPE_SINGLE_DAMAGE:
+                health -= influence.values[0];
+                return true;
+
 //            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION:
 //                float consumption = (time - influence.getApplyTime() / 1000.0f) * influence.values[0];
 //                energy -= consumption;
