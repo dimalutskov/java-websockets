@@ -2,6 +2,7 @@ package com.dlapp.spaceships.game.entity;
 
 import com.dlapp.spaceships.game.GameConstants;
 import com.dlapp.spaceships.game.GameProtocol;
+import com.dlapp.spaceships.game.GameWorld;
 import com.dlapp.spaceships.game.desc.AliveEntityDesc;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 
@@ -14,8 +15,8 @@ public class PlayerEntity extends WorldAliveEntity {
     private final AliveEntityDesc desc;
     private final Session session;
 
-    public PlayerEntity(AliveEntityDesc desc, Session session) {
-        super(session.getId(), desc);
+    public PlayerEntity(GameWorld world, AliveEntityDesc desc, Session session) {
+        super(world, session.getId(), desc);
         this.desc = desc;
         this.session = session;
     }

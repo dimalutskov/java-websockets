@@ -1,5 +1,6 @@
 package com.dlapp.spaceships.game.entity;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,9 @@ public class WorldEntity {
 
     private final List<EntityInfluence> influences = new ArrayList<>();
 
-    private WorldEntityMovement movement = new WorldEntityMovement();
+    private final WorldEntityMovement movement = new WorldEntityMovement();
+
+    private final Rectangle2D.Double rect = new Rectangle2D.Double();
 
     public WorldEntity(String id, int type) {
         this(id, type, 0, 0, 0);
@@ -42,6 +45,10 @@ public class WorldEntity {
         return id;
     }
 
+    public int getType() {
+        return type;
+    }
+
     public int getX() {
         return xPos;
     }
@@ -58,6 +65,15 @@ public class WorldEntity {
         return size;
     }
 
+    public Rectangle2D.Double getRect() {
+        float halfSize = size / 2.0f;
+        rect.x = getX() - halfSize;
+        rect.y = getY() - halfSize;
+        rect.width = size;
+        rect.height = size;
+        return rect;
+    }
+
     public boolean isDestroyed() {
         return isDestroyed;
     }
@@ -68,6 +84,10 @@ public class WorldEntity {
 
     public void setDestroyTime(long destroyTime) {
         this.destroyTime = destroyTime;
+    }
+
+    public void updateSize(int size) {
+        this.size = size;
     }
 
     public void update(long time, int x, int y, int angle, int speed) {
@@ -111,9 +131,18 @@ public class WorldEntity {
         return true;
     }
 
+    public void onCollision(WorldEntity entity) {
+        System.out.println("@@@ onCollision " + getId() + " " + entity.getId());
+    }
+
+    public void onCollisionEnd(WorldEntity entity) {
+        System.out.println("@@@ onCollisionEnd " + getId() + " " + entity.getId());
+    }
+
     public String getStateString() {
         return id + "," +
                 type + "," +
+                size + "," +
                 xPos + "," +
                 yPos + "," +
                 angle + ",";

@@ -21,7 +21,7 @@ public class GameProtocol {
     /**
      * Provides current game state with all required game objects, etc.
      * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE};{OBJECT_STATE};...{OBJECT_STATE};
-     * {OBJECT_STATE} = id,type,x,y,angle...(rest type related props)
+     * {OBJECT_STATE} = id,type,size,x,y,angle...(rest type related props)
      * {SPACESHIP_STATE} = {OBJECT_STATE},health,energy
      */
     public static final String SERVER_MSG_STATE = "state";

@@ -6,8 +6,8 @@ import java.util.Collection;
 
 public class SkillDesc {
 
-    // damage, speed, fire rate
-    public static final SkillDesc SKILL_SHOT = new SkillDesc(GameConstants.SKILL_TYPE_SHOT, 2, 20, 300, 1000);
+    // size, damage, speed, fire rate
+    public static final SkillDesc SKILL_SHOT = new SkillDesc(GameConstants.SKILL_TYPE_SHOT, 2, 8, 20, 300, 1000);
     public static final SkillDesc SKILL_ACCELERATION = new SkillDesc(GameConstants.SKILL_TYPE_ACCELERATION, 30, 20, 300);
 
     public final int type;

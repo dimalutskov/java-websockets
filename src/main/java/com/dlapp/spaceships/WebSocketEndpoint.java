@@ -22,7 +22,7 @@ public class WebSocketEndpoint {
     @OnOpen
     public void onOpen(Session session) {
         System.out.println("@@@ onOpen " + this + " " + session.getId());
-        this.player = new PlayerEntity(AliveEntityDesc.SPACESHIP_DESC, session);
+        this.player = new PlayerEntity(sRoom, AliveEntityDesc.SPACESHIP_DESC, session);
         sRoom.connectPlayer(player);
     }
 

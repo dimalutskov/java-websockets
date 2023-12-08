@@ -5,20 +5,24 @@ import com.dlapp.spaceships.game.entity.WorldEntity;
 
 import java.util.*;
 
-public class GameRoom {
+public class GameRoom implements GameWorld {
 
     private static final int WORLD_STATES_KEEP_COUNT = 3;
 
-    private static final long UPDATE_STATE = 1000;
+    private static final long UPDATE_FRAME_INTERVAL = 1000;
+    private static final long STATE_BROADCAST_INTERVAL = 1000;
 
     private final String id;
 
+    private final WorldCollisionsHandler collisionsHandler = new WorldCollisionsHandler();
     private final List<WorldEntity> gameObjects = new ArrayList(100); // TODO
     private final List<PlayerEntity> players = new ArrayList();
 
     private final List<WorldState> worldStates = new ArrayList<>();
 
     private Timer gameProcessingTimer;
+
+    private long lastStateBroadcastTime;
 
     public GameRoom(String id) {
         this.id = id;
@@ -29,36 +33,59 @@ public class GameRoom {
         return id;
     }
 
+    @Override
+    public void addEntity(WorldEntity entity, EntityCollisionsHandler entityCollisionsHandler) {
+        gameObjects.add(entity);
+        collisionsHandler.registerHandler(entityCollisionsHandler);
+    }
+
     public synchronized void connectPlayer(PlayerEntity player) {
         players.add(player);
         gameObjects.add(player);
+
+        // Collisions
+        EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(player, GameConstants.ENTITY_TYPE_SHOT);
+        collisionsHandler.registerHandler(playerCollisions);
+
         if (players.size() == 1) {
-            gameProcessingTimer = new Timer();
-            // Update game state task
-            gameProcessingTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    long time = System.currentTimeMillis();
-                    proceed(time);
-                    updateWorldState(time);
-                }
-            }, 0, UPDATE_STATE);
+            startWorld();
         }
         // Response to client
-        String serverInfo = System.currentTimeMillis() + "," + UPDATE_STATE;
+        String serverInfo = System.currentTimeMillis() + "," + STATE_BROADCAST_INTERVAL;
         player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";" + player.getId() + ";");
         // Send last state???
         onObjectAdded(player, System.currentTimeMillis());
     }
 
     public synchronized void disconnectPlayer(PlayerEntity player) {
+        // TODO destroy, collisions
         players.remove(player);
         gameObjects.remove(player);
         if (players.size() == 0) {
-            if (gameProcessingTimer != null) gameProcessingTimer.cancel();
+            stopWorld();
         }
         // Disconnect message
         onObjectDestroyed(player, System.currentTimeMillis());
+    }
+
+    private void startWorld() {
+        gameProcessingTimer = new Timer();
+        // Update game state task
+        gameProcessingTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                long time = System.currentTimeMillis();
+                proceed(time);
+                if (time - lastStateBroadcastTime >= STATE_BROADCAST_INTERVAL) {
+                    updateWorldState(time);
+                    lastStateBroadcastTime = time;
+                }
+            }
+        }, 0, UPDATE_FRAME_INTERVAL);
+    }
+
+    private void stopWorld() {
+        if (gameProcessingTimer != null) gameProcessingTimer.cancel();
     }
 
     public synchronized void onClientMessage(PlayerEntity player, String message) {
@@ -67,7 +94,7 @@ public class GameRoom {
             String[] split = message.split(";");
             List<WorldEntity> objectsToAdd = new ArrayList<>();
             player.onMessage(split, objectsToAdd);
-            gameObjects.addAll(objectsToAdd);
+//            gameObjects.addAll(objectsToAdd);
 
             if (!gameObjects.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
                 // Response client with new objects ids
@@ -84,6 +111,8 @@ public class GameRoom {
     }
 
     private synchronized void proceed(long time) {
+        collisionsHandler.checkCollisions();
+
         List<WorldEntity> objectsToAdd = new ArrayList<>();
         Iterator<WorldEntity> objectsIt = gameObjects.listIterator();
         while (objectsIt.hasNext()) {
@@ -155,8 +184,9 @@ public class GameRoom {
 
 
     private List<WorldEntity> testObjects = new ArrayList<>();
+    private long lastTestObjectsUpdate = 0;
     private void addTestObjects() {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             String id = "test_" + i;
             WorldEntity object = new WorldEntity(id, GameConstants.ENTITY_TYPE_SPACESHIP);
             int x = (int) (200 * Math.random());
@@ -164,11 +194,24 @@ public class GameRoom {
             int angle = (int) (180 * Math.random());
             int speed = (int) (30 + 50 * Math.random());
             object.update(System.currentTimeMillis(), x, y, angle, speed);
+
+            EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(object, GameConstants.ENTITY_TYPE_SHOT);
+            collisionsHandler.registerHandler(playerCollisions);
+
             testObjects.add(object);
             gameObjects.add(object);
         }
     }
     private void updateTestObjects(long time) {
+        if (lastTestObjectsUpdate != 0 && time - lastTestObjectsUpdate > 5000) {
+            for (WorldEntity obj : testObjects) {
+                obj.update(time, 0, 0, 0, 0);
+                obj.update(time + 1, (int) (360 * Math.random()), (int) (30 + 50 * Math.random()));
+            }
+            lastTestObjectsUpdate = time;
+            return;
+        }
+
         for (WorldEntity obj : testObjects) {
             double angle = 0;
             if (obj.getX() > 500) {
@@ -203,6 +246,7 @@ public class GameRoom {
                 obj.update(time, (int) angle);
             }
         }
+        lastTestObjectsUpdate = time;
     }
 
 }

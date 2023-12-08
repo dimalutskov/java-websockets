@@ -1,6 +1,6 @@
 package com.dlapp.spaceships;
 
-import java.math.BigDecimal;
+import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 
 public class MathUtils {
@@ -20,6 +20,21 @@ public class MathUtils {
         if (angle < 0) return 360 + angle;
         else if (angle >= 360) return angle - 360;
         else return angle;
+    }
+
+    public static boolean belongs(Rectangle2D.Double rect, double x, double y) {
+        return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
+    }
+
+    public static boolean intersects(Rectangle2D.Double rect1, Rectangle2D.Double rect2) {
+        return belongs(rect1, rect2.x, rect2.y) ||
+                belongs(rect1, rect2.x, rect2.y + rect2.height) ||
+                belongs(rect1, rect2.x + rect2.width, rect2.y) ||
+                belongs(rect1, rect2.x + rect2.width, rect2.y + rect2.height) ||
+               belongs(rect2, rect1.x, rect1.y) ||
+                belongs(rect2, rect1.x, rect1.y + rect1.height) ||
+                belongs(rect2, rect1.x + rect1.width, rect1.y) ||
+                belongs(rect2, rect1.x + rect1.width, rect1.y + rect1.height);
     }
 
 }
