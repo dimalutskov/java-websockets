@@ -1,4 +1,4 @@
-package com.baeldung.websocket;
+package com.dlapp.spaceships;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;

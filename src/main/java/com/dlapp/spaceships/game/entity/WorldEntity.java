@@ -1,10 +1,14 @@
-package com.baeldung.websocket.game;
+package com.dlapp.spaceships.game.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class WorldObject {
+public class WorldEntity {
+
     private final String id;
     private final int type;
+
+    private int size = 1;
 
     private int xPos;
     private int yPos;
@@ -14,13 +18,15 @@ public class WorldObject {
     private long destroyTime;
     private boolean isDestroyed;
 
-    private GameObjectMovement movement = new GameObjectMovement();
+    private final List<EntityInfluence> influences = new ArrayList<>();
 
-    public WorldObject(String id, int type) {
+    private WorldEntityMovement movement = new WorldEntityMovement();
+
+    public WorldEntity(String id, int type) {
         this(id, type, 0, 0, 0);
     }
 
-    public WorldObject(String id, int type, int x, int y, int angle) {
+    public WorldEntity(String id, int type, int x, int y, int angle) {
         this.id = id;
         this.type = type;
         this.xPos = x;
@@ -28,8 +34,8 @@ public class WorldObject {
         this.angle = angle;
     }
 
-    public WorldObject copy() {
-        return new WorldObject(id, type, xPos, yPos, angle);
+    public WorldEntity copy() {
+        return new WorldEntity(id, type, xPos, yPos, angle);
     }
 
     public String getId() {
@@ -48,6 +54,10 @@ public class WorldObject {
         return angle;
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public boolean isDestroyed() {
         return isDestroyed;
     }
@@ -60,32 +70,48 @@ public class WorldObject {
         this.destroyTime = destroyTime;
     }
 
-    void update(long time, int x, int y, int angle, int speed) {
+    public void update(long time, int x, int y, int angle, int speed) {
         movement.update(x, y);
         update(time, angle, speed);
     }
 
-    void update(long time, int angle) {
+    public void update(long time, int angle) {
         movement.setAngle(angle);
         movement.step(time);
     }
 
-    void update(long time, int angle, int speed) {
+    public void update(long time, int angle, int speed) {
         movement.setAngle(angle);
         movement.setSpeed(speed);
         movement.step(time);
     }
 
-    void proceed(long time, List<WorldObject> objectsToAdd) {
+    public void attachInfluence(EntityInfluence influence) {
+        influences.add(influence);
+    }
+
+//    public void detachInfluence(String id) {
+//        influences.removeIf(i -> i.id.equals(id));
+//    }
+
+    public void proceed(long time, List<WorldEntity> objectsToAdd) {
         movement.step(time);
         xPos = (int) movement.getCurX();
         yPos = (int) movement.getCurY();
+        angle = (int) movement.getAngle();
+
+        influences.removeIf(i -> applyInfluence(i, time));
+
         if (destroyTime > 0 && time > destroyTime) {
             destroy();
         }
     }
 
-    String getStateString() {
+    protected boolean applyInfluence(EntityInfluence influence, long time) {
+        return true;
+    }
+
+    public String getStateString() {
         return id + "," +
                 type + "," +
                 xPos + "," +

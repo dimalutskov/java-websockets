@@ -1,8 +1,8 @@
-package com.baeldung.websocket.game;
+package com.dlapp.spaceships.game.entity;
 
-import com.baeldung.websocket.MathUtils;
+import com.dlapp.spaceships.MathUtils;
 
-public class GameObjectMovement {
+class WorldEntityMovement {
 
     private float mCurX;
     private float mCurY;
@@ -45,6 +45,10 @@ public class GameObjectMovement {
 
     public float getCurY() {
         return mCurY;
+    }
+
+    public float getAngle() {
+        return mCurrentAngle;
     }
 
     void step(long time) {

@@ -1,21 +1,22 @@
-package com.baeldung.websocket.game;
+package com.dlapp.spaceships.game.entity;
+
+import com.dlapp.spaceships.game.GameConstants;
+import com.dlapp.spaceships.game.GameProtocol;
+import com.dlapp.spaceships.game.desc.AliveEntityDesc;
+import com.dlapp.spaceships.game.desc.SkillDesc;
 
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-public class GamePlayer extends WorldObject {
+public class PlayerEntity extends WorldAliveEntity {
+    private final AliveEntityDesc desc;
     private final Session session;
 
-    private float health;
-    private float energy;
-
-    private int shotSpeed = 300; // TODO
-    private long shotId = 0;
-
-    public GamePlayer(Session session) {
-        super(session.getId(), GameProtocol.GAME_OBJECT_TYPE_PLAYER);
+    public PlayerEntity(AliveEntityDesc desc, Session session) {
+        super(session.getId(), desc);
+        this.desc = desc;
         this.session = session;
     }
 
@@ -23,7 +24,7 @@ public class GamePlayer extends WorldObject {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        GamePlayer roomUser = (GamePlayer) o;
+        PlayerEntity roomUser = (PlayerEntity) o;
         return session.getId().equals(roomUser.session.getId());
     }
 
@@ -32,7 +33,7 @@ public class GamePlayer extends WorldObject {
         return Objects.hash(session.getId());
     }
 
-    void send(String message) {
+    public void send(String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
@@ -40,7 +41,7 @@ public class GamePlayer extends WorldObject {
         }
     }
 
-    public synchronized void onMessage(String[] split, List<WorldObject> objectsToAdd) {
+    public synchronized void onMessage(String[] split, List<WorldEntity> objectsToAdd) {
         long time = System.currentTimeMillis();
         switch (split[0])  {
             case GameProtocol.CLIENT_MSG_MOVEMENT: {
@@ -48,48 +49,35 @@ public class GamePlayer extends WorldObject {
                 int y = Integer.parseInt(split[3]);
                 int angle = Integer.parseInt(split[4]);
                 int speed = Integer.parseInt(split[5]);
-                // TODO Check cheats
                 update(time, x, y, angle, speed);
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_ON: {
                 long serverTime = Long.parseLong(split[1]);
-                int skillId = Integer.parseInt(split[2]);
-                if (skillId == GameProtocol.SKILL_ID_SHOT) {
+                int skillType = Integer.parseInt(split[2]);
+                SkillDesc skill = SkillDesc.find(desc.skills, skillType);
+                if (skill == null || skill.energyPrice > energy) {
+                    break;
+                }
+
+                if (skillType == GameConstants.SKILL_TYPE_SHOT) {
                     int x = Integer.parseInt(split[3]);
                     int y = Integer.parseInt(split[4]);
                     int angle = Integer.parseInt(split[5]);
-                    objectsToAdd.add(handleShot(serverTime, x, y, angle));
+                    objectsToAdd.add(handleShotSkill(serverTime, skill, x, y, angle));
                 }
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_OFF: {
                 int skillId = Integer.parseInt(split[2]);
+                long duration = Long.parseLong(split[3]);
                 break;
             }
         }
     }
 
-    @Override
-    void proceed(long time, List<WorldObject> objectsToAdd) {
-        super.proceed(time, objectsToAdd);
-    }
 
-    private WorldObject handleShot(long time, int x, int y, int angle) {
-        // Create shot object
-        WorldObject shot = new WorldObject(getId() + "_" + shotId, GameProtocol.GAME_OBJECT_TYPE_SHOT, x, y, angle);
-        shot.update(time, x, y, angle, shotSpeed);
-        shot.setDestroyTime(time + 5000);
-        shotId++;
-        return shot;
-    }
 
-    @Override
-    String getStateString() {
-        return super.getStateString() +
-                Math.round(health) + "," +
-                Math.round(energy) + ",";
-    }
 }

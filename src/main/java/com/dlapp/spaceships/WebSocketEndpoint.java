@@ -1,8 +1,9 @@
-package com.baeldung.websocket;
+package com.dlapp.spaceships;
 
-import com.baeldung.websocket.game.GamePlayer;
-import com.baeldung.websocket.game.GameProtocol;
-import com.baeldung.websocket.game.GameRoom;
+import com.dlapp.spaceships.game.desc.AliveEntityDesc;
+import com.dlapp.spaceships.game.entity.PlayerEntity;
+import com.dlapp.spaceships.game.GameProtocol;
+import com.dlapp.spaceships.game.GameRoom;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -16,12 +17,12 @@ public class WebSocketEndpoint {
 
     private static GameRoom sRoom = new GameRoom("room_id");
 
-    private GamePlayer player;
+    private PlayerEntity player;
 
     @OnOpen
     public void onOpen(Session session) {
         System.out.println("@@@ onOpen " + this + " " + session.getId());
-        this.player = new GamePlayer(session);
+        this.player = new PlayerEntity(AliveEntityDesc.SPACESHIP_DESC, session);
         sRoom.connectPlayer(player);
     }
 

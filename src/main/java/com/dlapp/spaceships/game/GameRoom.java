@@ -1,4 +1,7 @@
-package com.baeldung.websocket.game;
+package com.dlapp.spaceships.game;
+
+import com.dlapp.spaceships.game.entity.PlayerEntity;
+import com.dlapp.spaceships.game.entity.WorldEntity;
 
 import java.util.*;
 
@@ -10,8 +13,8 @@ public class GameRoom {
 
     private final String id;
 
-    private final List<WorldObject> gameObjects = new ArrayList(100); // TODO
-    private final List<GamePlayer> players = new ArrayList();
+    private final List<WorldEntity> gameObjects = new ArrayList(100); // TODO
+    private final List<PlayerEntity> players = new ArrayList();
 
     private final List<WorldState> worldStates = new ArrayList<>();
 
@@ -26,7 +29,7 @@ public class GameRoom {
         return id;
     }
 
-    public synchronized void connectPlayer(GamePlayer player) {
+    public synchronized void connectPlayer(PlayerEntity player) {
         players.add(player);
         gameObjects.add(player);
         if (players.size() == 1) {
@@ -43,13 +46,12 @@ public class GameRoom {
         }
         // Response to client
         String serverInfo = System.currentTimeMillis() + "," + UPDATE_STATE;
-        String playerInfo = PlayerInfo.defaultInfo().toString();
-        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";" + player.getId() + ";" +  playerInfo + ";");
+        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";" + player.getId() + ";");
         // Send last state???
         onObjectAdded(player, System.currentTimeMillis());
     }
 
-    public synchronized void disconnectPlayer(GamePlayer player) {
+    public synchronized void disconnectPlayer(PlayerEntity player) {
         players.remove(player);
         gameObjects.remove(player);
         if (players.size() == 0) {
@@ -59,11 +61,11 @@ public class GameRoom {
         onObjectDestroyed(player, System.currentTimeMillis());
     }
 
-    public synchronized void onClientMessage(GamePlayer player, String message) {
+    public synchronized void onClientMessage(PlayerEntity player, String message) {
         System.out.println("@@@ handleMessage: " + message);
         try {
             String[] split = message.split(";");
-            List<WorldObject> objectsToAdd = new ArrayList<>();
+            List<WorldEntity> objectsToAdd = new ArrayList<>();
             player.onMessage(split, objectsToAdd);
             gameObjects.addAll(objectsToAdd);
 
@@ -71,7 +73,7 @@ public class GameRoom {
                 // Response client with new objects ids
                 StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")
                         .append(split[1]).append(";"); // skillId
-                for (WorldObject object : objectsToAdd) {
+                for (WorldEntity object : objectsToAdd) {
                     responseMsg.append(object.getId()).append(";");
                 }
                 player.send(responseMsg.toString());
@@ -82,17 +84,17 @@ public class GameRoom {
     }
 
     private synchronized void proceed(long time) {
-        List<WorldObject> objectsToAdd = new ArrayList<>();
-        Iterator<WorldObject> objectsIt = gameObjects.listIterator();
+        List<WorldEntity> objectsToAdd = new ArrayList<>();
+        Iterator<WorldEntity> objectsIt = gameObjects.listIterator();
         while (objectsIt.hasNext()) {
-            WorldObject object = objectsIt.next();
+            WorldEntity object = objectsIt.next();
             object.proceed(time, objectsToAdd);
             if (object.isDestroyed()) {
                 objectsIt.remove();
                 onObjectDestroyed(object, time);
             }
         }
-        for (WorldObject addedObject : objectsToAdd) {
+        for (WorldEntity addedObject : objectsToAdd) {
             gameObjects.add(addedObject);
             onObjectAdded(addedObject, time);
         }
@@ -100,11 +102,11 @@ public class GameRoom {
         updateTestObjects(time);
     }
 
-    private void onObjectAdded(WorldObject object, long time) {
+    private void onObjectAdded(WorldEntity object, long time) {
         broadcast(GameProtocol.SERVER_MSG_OBJECT_ADDED + ";" + time + ";" + object.getStateString());
     }
 
-    private void onObjectDestroyed(WorldObject object, long time) {
+    private void onObjectDestroyed(WorldEntity object, long time) {
         broadcast(GameProtocol.SERVER_MSG_OBJECT_DESTROYED + ";" + time + ";" + object.getStateString());
     }
 
@@ -113,8 +115,8 @@ public class GameRoom {
                 .append(GameProtocol.SERVER_MSG_STATE).append(";");
         stateString.append(time).append(";");
 
-        List<WorldObject> objects = new ArrayList<>();
-        for (WorldObject obj : gameObjects) {
+        List<WorldEntity> objects = new ArrayList<>();
+        for (WorldEntity obj : gameObjects) {
             objects.add(obj.copy());
             stateString.append(obj.getStateString()).append(";");
         }
@@ -129,7 +131,7 @@ public class GameRoom {
     }
 
     private synchronized void broadcast(String message) {
-        for (GamePlayer player : players) {
+        for (PlayerEntity player : players) {
             player.send(message);
         }
     }
@@ -152,11 +154,11 @@ public class GameRoom {
     }
 
 
-    private List<WorldObject> testObjects = new ArrayList<>();
+    private List<WorldEntity> testObjects = new ArrayList<>();
     private void addTestObjects() {
         for (int i = 0; i < 2; i++) {
             String id = "test_" + i;
-            WorldObject object = new WorldObject(id, GameProtocol.GAME_OBJECT_TYPE_NPC);
+            WorldEntity object = new WorldEntity(id, GameConstants.ENTITY_TYPE_SPACESHIP);
             int x = (int) (200 * Math.random());
             int y = (int) (200 * Math.random());
             int angle = (int) (180 * Math.random());
@@ -167,7 +169,7 @@ public class GameRoom {
         }
     }
     private void updateTestObjects(long time) {
-        for (WorldObject obj : testObjects) {
+        for (WorldEntity obj : testObjects) {
             double angle = 0;
             if (obj.getX() > 500) {
                 if (obj.getY() < 0) {

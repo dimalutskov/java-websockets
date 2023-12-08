@@ -1,4 +1,4 @@
-package com.baeldung.websocket.game;
+package com.dlapp.spaceships.game;
 
 /**
  * First int before first ; in string message(both client and server) defines message type
@@ -15,14 +15,14 @@ public class GameProtocol {
      * Provides server information and objectId for this connected client to retrieve current player state from server state message
      * {MSG_TYPE};{SERVER_INFO};{OBJECT_ID};{PLAYER_INFO}
      * SERVER_INFO: "{SERVER_TIME},{UPDATE_INTERVAL}"
-     * PLAYER_INFO: "{HEALTH},{ENERGY},{SPEED}"
      */
     public static final String SERVER_MSG_RESPONSE_CONNECTED = "connected";
 
     /**
      * Provides current game state with all required game objects, etc.
      * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE};{OBJECT_STATE};...{OBJECT_STATE};
-     * {OBJECT_STATE} = id,type,x,y,angle,speed...(rest type related props)
+     * {OBJECT_STATE} = id,type,x,y,angle...(rest type related props)
+     * {SPACESHIP_STATE} = {OBJECT_STATE},health,energy
      */
     public static final String SERVER_MSG_STATE = "state";
 
@@ -56,23 +56,19 @@ public class GameProtocol {
     /**
      * Provides player skill attributes
      * {MSG_TYPE};{SERVER_ESTIMATED_TIME};{skillID};{skillParams};
+     * skillParams - {x};{y};{angle} - for single shots
      */
     public static final String CLIENT_MSG_SKILL_ON = "skillON";
+
+    /**
+     * Provides player skill attributes
+     * {MSG_TYPE};{SERVER_ESTIMATED_TIME};{skillID};{skillDuration};
+     */
     public static final String CLIENT_MSG_SKILL_OFF = "skillOFF";
 
     /// DEBUG MESSAGES
     public static final String CLIENT_MSG_SET_SERVER_DELAY = "setServerDelay";
 
-    ///////////////////// GAME OBJECT TYPES /////////////////////////
-    public static final int GAME_OBJECT_TYPE_PLAYER = 1;
-
-    // object_id of shot types will be: "{owner_id}||{unique_id}"
-    public static final int GAME_OBJECT_TYPE_SHOT = 2;
-
-    public static final int GAME_OBJECT_TYPE_NPC = 3;
-
-    public static final int SKILL_ID_SHOT = 1;
-    public static final int SKILL_ID_SPEED = 2;
 };
 
 // Client:
