@@ -14,7 +14,7 @@ public class WorldCollisionsHandler {
     }
 
     void checkCollisions() {
-        List<Integer> positionsToRemove = new ArrayList<>();
+        Set<Integer> positionsToRemove = new HashSet<>();
 
         for (int i = 0; i < handlers.size(); i++) {
             for (int j = 0; j < handlers.size(); j++) {
@@ -33,8 +33,8 @@ public class WorldCollisionsHandler {
                             entity.onCollisionEnd(obj1Handler.entity);
                         }
                         positionsToRemove.add(i);
-                        break;
                     }
+                    break;
                 }
 
                 checkCollision(obj1Handler, obj2Handler);
