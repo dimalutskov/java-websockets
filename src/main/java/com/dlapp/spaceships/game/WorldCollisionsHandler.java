@@ -33,6 +33,7 @@ public class WorldCollisionsHandler {
                             entity.onCollisionEnd(obj1Handler.entity);
                         }
                         positionsToRemove.add(i);
+                        break;
                     }
                 }
 
@@ -40,8 +41,11 @@ public class WorldCollisionsHandler {
             }
         }
         // Detach destroyed objects
-        for (int i = positionsToRemove.size() - 1; i >= 0; i--) {
-            int positionToRemove = positionsToRemove.get(i);
+//        for (int i = positionsToRemove.size() - 1; i >= 0; i--) {
+//            int positionToRemove = positionsToRemove.get(i);
+//            handlers.remove(positionToRemove);
+//        }
+        for (int positionToRemove : positionsToRemove) {
             handlers.remove(positionToRemove);
         }
     }

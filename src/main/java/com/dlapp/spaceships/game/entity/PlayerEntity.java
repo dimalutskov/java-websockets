@@ -73,7 +73,7 @@ public class PlayerEntity extends WorldAliveEntity {
 
             case GameProtocol.CLIENT_MSG_SKILL_OFF: {
                 int skillId = Integer.parseInt(split[2]);
-                long duration = Long.parseLong(split[3]);
+//                long duration = Long.parseLong(split[3]);
                 break;
             }
         }
