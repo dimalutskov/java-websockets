@@ -5,7 +5,8 @@ import com.dlapp.spaceships.game.desc.SkillDesc;
 
 public class SingleShotEntity extends WorldEntity {
 
-    private static String ID_SEPARATOR = "::";
+    public static String ID_SEPARATOR = "::";
+
     private static long generatedShotId = 0;
 
     private final SkillDesc skillDesc;

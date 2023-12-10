@@ -9,7 +9,7 @@ public class GameRoom implements GameWorld {
 
     private static final int WORLD_STATES_KEEP_COUNT = 3;
 
-    private static final long UPDATE_FRAME_INTERVAL = 1000;
+    private static final long UPDATE_FRAME_INTERVAL = 25;
     private static final long STATE_BROADCAST_INTERVAL = 1000;
 
     private final String id;
@@ -194,14 +194,16 @@ public class GameRoom implements GameWorld {
             int angle = (int) (180 * Math.random());
             int speed = (int) (30 + 50 * Math.random());
             object.update(System.currentTimeMillis(), x, y, angle, speed);
-
-            EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(object, GameConstants.ENTITY_TYPE_SHOT);
-            collisionsHandler.registerHandler(playerCollisions);
-
-            testObjects.add(object);
-            gameObjects.add(object);
         }
+
+        // Static object
+        WorldEntity staticObject = new WorldEntity("test_static", GameConstants.ENTITY_TYPE_SPACESHIP);
+        EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject, GameConstants.ENTITY_TYPE_SHOT);
+        collisionsHandler.registerHandler(collisions);
+        staticObject.update(System.currentTimeMillis(), 100, 100, 0, 0);
+        gameObjects.add(staticObject);
     }
+
     private void updateTestObjects(long time) {
         if (lastTestObjectsUpdate != 0 && time - lastTestObjectsUpdate > 5000) {
             for (WorldEntity obj : testObjects) {

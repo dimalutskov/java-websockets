@@ -66,6 +66,16 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     @Override
+    public void onCollision(WorldEntity entity) {
+        if (entity.getType() == GameConstants.ENTITY_TYPE_SHOT && entity.getId().split(SingleShotEntity.ID_SEPARATOR)[0].equals(getId())) {
+            // Collision with the own shot - ignore it
+            return;
+        }
+
+        super.onCollision(entity);
+    }
+
+    @Override
     public String getStateString() {
         return super.getStateString() +
                 Math.round(health) + "," +
