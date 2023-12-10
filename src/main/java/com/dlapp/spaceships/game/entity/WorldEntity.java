@@ -11,10 +11,12 @@ public class WorldEntity {
 
     private int size = 1;
 
-    private int xPos;
-    private int yPos;
-
+    private int x;
+    private int y;
     private int angle;
+
+    private int prevX;
+    private int prevY;
 
     private long destroyTime;
     private boolean isDestroyed;
@@ -32,13 +34,13 @@ public class WorldEntity {
     public WorldEntity(String id, int type, int x, int y, int angle) {
         this.id = id;
         this.type = type;
-        this.xPos = x;
-        this.yPos = y;
+        this.x = x;
+        this.y = y;
         this.angle = angle;
     }
 
     public WorldEntity copy() {
-        return new WorldEntity(id, type, xPos, yPos, angle);
+        return new WorldEntity(id, type, x, y, angle);
     }
 
     public String getId() {
@@ -50,11 +52,19 @@ public class WorldEntity {
     }
 
     public int getX() {
-        return xPos;
+        return x;
     }
 
     public int getY() {
-        return yPos;
+        return y;
+    }
+
+    public int getPrevX() {
+        return prevX;
+    }
+
+    public int getPrevY() {
+        return prevY;
     }
 
     public int getAngle() {
@@ -116,8 +126,10 @@ public class WorldEntity {
 
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
         movement.step(time);
-        xPos = (int) movement.getCurX();
-        yPos = (int) movement.getCurY();
+        prevX = x;
+        prevY = y;
+        x = (int) movement.getCurX();
+        y = (int) movement.getCurY();
         angle = (int) movement.getAngle();
 
         influences.removeIf(i -> applyInfluence(i, time));
@@ -143,8 +155,8 @@ public class WorldEntity {
         return id + "," +
                 type + "," +
                 size + "," +
-                xPos + "," +
-                yPos + "," +
+                x + "," +
+                y + "," +
                 angle + ",";
     }
 

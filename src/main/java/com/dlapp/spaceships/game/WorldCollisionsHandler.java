@@ -14,7 +14,7 @@ public class WorldCollisionsHandler {
     }
 
     void checkCollisions() {
-        Set<Integer> positionsToRemove = new HashSet<>();
+        List<Integer> positionsToRemove = new ArrayList<>();
 
         for (int i = 0; i < handlers.size(); i++) {
             for (int j = 0; j < handlers.size(); j++) {
@@ -41,11 +41,8 @@ public class WorldCollisionsHandler {
             }
         }
         // Detach destroyed objects
-//        for (int i = positionsToRemove.size() - 1; i >= 0; i--) {
-//            int positionToRemove = positionsToRemove.get(i);
-//            handlers.remove(positionToRemove);
-//        }
-        for (int positionToRemove : positionsToRemove) {
+        for (int i = positionsToRemove.size() - 1; i >= 0; i--) {
+            int positionToRemove = positionsToRemove.get(i);
             handlers.remove(positionToRemove);
         }
     }

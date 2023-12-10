@@ -20,11 +20,6 @@ public class EntityCollisionsHandler {
     // Types of GameObjects which can be in collision
     private final Set<Integer> collideTypes = new HashSet<>();
 
-    // Describes collision rect ratio to view rect. When value is 0.5 and view size is 100, collision rect size will be 50
-    private final Point2D.Double collisionRectRatio = new Point2D.Double(1.0f, 1.0f);
-
-    private final Rectangle2D.Double collisionRect = new Rectangle2D.Double();
-
     public EntityCollisionsHandler(WorldEntity entity, Integer... collisionTypes) {
         this.entity = entity;
         this.collideTypes.addAll(Arrays.asList(collisionTypes));
@@ -34,20 +29,10 @@ public class EntityCollisionsHandler {
         return collideTypes.contains(type);
     }
 
-    Rectangle2D.Double getCollisionRect() {
-        Rectangle2D.Double objRect = entity.getRect();
-//        double collisionWidth = objRect.getWidth() * collisionRectRatio.getX();
-//        double collisionHeight = objRect.getHeight() * collisionRectRatio.getY();
-//        double collisionLeft = objRect.x + (objRect.getWidth() - collisionWidth) / 2;
-//        double collisionTop = objRect.y + (objRect.getHeight() - collisionHeight) / 2;
-//        collisionRect.setRect(collisionLeft, collisionTop, collisionLeft + collisionWidth, collisionTop + collisionHeight);
-        return objRect;
-    }
-
     boolean hasCollision(EntityCollisionsHandler handler) {
         if (canBeCollided(handler.entity.getType())) {
-            Rectangle2D.Double obj1CollisionRect = getCollisionRect();
-            Rectangle2D.Double obj2CollisionRect = handler.getCollisionRect();
+            Rectangle2D.Double obj1CollisionRect = entity.getRect();
+            Rectangle2D.Double obj2CollisionRect = handler.entity.getRect();
             return MathUtils.intersects(obj1CollisionRect, obj2CollisionRect);
         }
         return false;
