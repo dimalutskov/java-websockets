@@ -1,5 +1,7 @@
 package com.dlapp.spaceships;
 
+import com.dlapp.spaceships.game.GameRoom;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -8,6 +10,12 @@ import javax.servlet.annotation.WebListener;
 public class ServerApp implements ServletContextListener {
 
     private static ServerApp sInstance;
+
+    public static ServerApp instance() {
+        return sInstance;
+    }
+
+    private GameRoom gameRoom = new GameRoom("room_id");
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
@@ -20,6 +28,10 @@ public class ServerApp implements ServletContextListener {
 
     private void init() {
 
+    }
+
+    public GameRoom getRoom() {
+        return gameRoom;
     }
 
 }

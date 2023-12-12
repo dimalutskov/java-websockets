@@ -1,15 +1,18 @@
 package com.dlapp.spaceships.game.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorldEntity {
+public abstract class WorldEntity {
 
     private final String id;
     private final int type;
 
-    private int size = 1;
+    private int size;
 
     private int x;
     private int y;
@@ -27,21 +30,20 @@ public class WorldEntity {
 
     private final Rectangle2D.Double rect = new Rectangle2D.Double();
 
-    public WorldEntity(String id, int type) {
-        this(id, type, 0, 0, 0);
+    public WorldEntity(String id, int type, int size) {
+        this(id, type, size, 0, 0, 0);
     }
 
-    public WorldEntity(String id, int type, int x, int y, int angle) {
+    public WorldEntity(String id, int type, int size, int x, int y, int angle) {
         this.id = id;
         this.type = type;
+        this.size = size;
         this.x = x;
         this.y = y;
         this.angle = angle;
     }
 
-    public WorldEntity copy() {
-        return new WorldEntity(id, type, x, y, angle);
-    }
+    public abstract WorldEntity copy();
 
     public String getId() {
         return id;
@@ -102,6 +104,8 @@ public class WorldEntity {
 
     public void update(long time, int x, int y, int angle, int speed) {
         movement.update(x, y);
+        this.y = y;
+        this.x = x;
         update(time, angle, speed);
     }
 
@@ -144,7 +148,8 @@ public class WorldEntity {
     }
 
     public void onCollision(WorldEntity entity) {
-        System.out.println("@@@ onCollision " + getId() + " " + entity.getId());
+        System.out.println("@@@ onCollision " + getId() + " " + getRect()
+                +  " || " + entity.getId() + " " + entity.getRect());
     }
 
     public void onCollisionEnd(WorldEntity entity) {
@@ -158,6 +163,34 @@ public class WorldEntity {
                 x + "," +
                 y + "," +
                 angle + ",";
+    }
+
+    public ObjectNode toJson() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode result = mapper.createObjectNode();
+        result.put("id", id);
+        result.put("type", type);
+        result.put("size", size);
+        result.put("x", x);
+        result.put("y", y);
+        result.put("angle", angle);
+        return result;
+    }
+
+    public static class Simple extends WorldEntity {
+
+        public Simple(String id, int type, int size) {
+            super(id, type, size);
+        }
+
+        public Simple(String id, int type, int size, int x, int y, int angle) {
+            super(id, type, size, x, y, angle);
+        }
+
+        @Override
+        public Simple copy() {
+            return new Simple(getId(), getType(), getSize(), getX(), getY(), getAngle());
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import com.dlapp.spaceships.game.GameConstants;
 import com.dlapp.spaceships.game.GameWorld;
 import com.dlapp.spaceships.game.desc.AliveEntityDesc;
 import com.dlapp.spaceships.game.desc.SkillDesc;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class WorldAliveEntity extends WorldEntity {
 
@@ -15,7 +16,7 @@ public class WorldAliveEntity extends WorldEntity {
     protected float energy;
 
     public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc) {
-        super(id, desc.type);
+        super(id, desc.type, desc.size);
         this.gameWorld = world;
         this.desc = desc;
         this.health = desc.health;
@@ -23,9 +24,17 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc, int x, int y, int angle) {
-        super(id, desc.type, x, y, angle);
+        super(id, desc.type, desc.size, x, y, angle);
         this.gameWorld = world;
         this.desc = desc;
+    }
+
+    @Override
+    public WorldEntity copy() {
+        WorldAliveEntity result = new WorldAliveEntity(gameWorld, getId(), desc, getX(), getY(), getAngle());
+        result.health = health;
+        result.energy = energy;
+        return result;
     }
 
     WorldEntity handleShotSkill(long time, SkillDesc skill, int x, int y, int angle) {
@@ -55,11 +64,11 @@ public class WorldAliveEntity extends WorldEntity {
                 health -= influence.values[0];
                 return true;
 
-//            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION:
-//                float consumption = (time - influence.getApplyTime() / 1000.0f) * influence.values[0];
-//                energy -= consumption;
-//                influence.setApplyTime(time);
-//                return false;
+            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION:
+                float consumption = (time - influence.getApplyTime() / 1000.0f) * influence.values[0];
+                energy -= consumption;
+                influence.setApplyTime(time);
+                return false;
         }
 
         return super.applyInfluence(influence, time);
@@ -67,7 +76,7 @@ public class WorldAliveEntity extends WorldEntity {
 
     @Override
     public void onCollision(WorldEntity entity) {
-        if (entity.getType() == GameConstants.ENTITY_TYPE_SHOT && entity.getId().split(SingleShotEntity.ID_SEPARATOR)[0].equals(getId())) {
+        if (entity.getType() == GameConstants.ENTITY_TYPE_SHOT && SingleShotEntity.getOwnerId(entity.getId()).equals(getId())) {
             // Collision with the own shot - ignore it
             return;
         }
@@ -80,5 +89,13 @@ public class WorldAliveEntity extends WorldEntity {
         return super.getStateString() +
                 Math.round(health) + "," +
                 Math.round(energy) + ",";
+    }
+
+    @Override
+    public ObjectNode toJson() {
+        ObjectNode result = super.toJson();
+        result.put("heath", health);
+        result.put("energy", energy);
+        return result;
     }
 }

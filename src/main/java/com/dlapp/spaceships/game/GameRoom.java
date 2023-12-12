@@ -44,7 +44,7 @@ public class GameRoom implements GameWorld {
         gameObjects.add(player);
 
         // Collisions
-        EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(player, GameConstants.ENTITY_TYPE_SHOT);
+        EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(player, GameConstants.ENTITY_TYPE_SPACESHIP, GameConstants.ENTITY_TYPE_SHOT);
         collisionsHandler.registerHandler(playerCollisions);
 
         if (players.size() == 1) {
@@ -188,7 +188,7 @@ public class GameRoom implements GameWorld {
     private void addTestObjects() {
         for (int i = 0; i < 3; i++) {
             String id = "test_" + i;
-            WorldEntity object = new WorldEntity(id, GameConstants.ENTITY_TYPE_SPACESHIP);
+            WorldEntity object = new WorldEntity.Simple(id, GameConstants.ENTITY_TYPE_SPACESHIP, 100);
             int x = (int) (200 * Math.random());
             int y = (int) (200 * Math.random());
             int angle = (int) (180 * Math.random());
@@ -197,10 +197,10 @@ public class GameRoom implements GameWorld {
         }
 
         // Static object
-        WorldEntity staticObject = new WorldEntity("test_static", GameConstants.ENTITY_TYPE_SPACESHIP);
+        WorldEntity staticObject = new WorldEntity.Simple("test_static", GameConstants.ENTITY_TYPE_SPACESHIP, 100);
         EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject, GameConstants.ENTITY_TYPE_SHOT);
         collisionsHandler.registerHandler(collisions);
-        staticObject.update(System.currentTimeMillis(), 100, 100, 0, 0);
+        staticObject.update(System.currentTimeMillis(), 230, 230, 0, 0);
         gameObjects.add(staticObject);
     }
 
@@ -249,6 +249,10 @@ public class GameRoom implements GameWorld {
             }
         }
         lastTestObjectsUpdate = time;
+    }
+
+    public WorldState getLastState() {
+        return worldStates.isEmpty() ? null : worldStates.get(worldStates.size() - 1);
     }
 
 }
