@@ -6,6 +6,11 @@ import java.util.Collection;
 
 public class SkillDesc {
 
+    public enum SkillType {
+        SINGLE, // Skill applied instantly when activated
+        CONTINUOUS // Skill applied continuously while it's activated
+    }
+
     // size, damage, speed, fire rate
     public static final SkillDesc SKILL_SHOT = new SkillDesc(GameConstants.SKILL_TYPE_SHOT, 2, 8, 20, 300, 1000);
     public static final SkillDesc SKILL_ACCELERATION = new SkillDesc(GameConstants.SKILL_TYPE_ACCELERATION, 30, 20, 300);
@@ -25,6 +30,16 @@ public class SkillDesc {
             if (skillDesc.type == type) return skillDesc;
         }
         return null;
+    }
+
+    public static SkillType typeOf(int skillId) {
+        switch (skillId) {
+            case GameConstants.SKILL_TYPE_SHOT:
+                return SkillType.SINGLE;
+            case GameConstants.SKILL_TYPE_ACCELERATION:
+                return SkillType.CONTINUOUS;
+        }
+        return SkillType.SINGLE;
     }
 
 }

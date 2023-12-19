@@ -8,12 +8,14 @@ import com.dlapp.spaceships.game.desc.SkillDesc;
 
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class PlayerEntity extends WorldAliveEntity {
     private final AliveEntityDesc desc;
     private final Session session;
+
+    // key - skillType, value - list of entity's influences when skill is activated
+    private final Map<Integer, List<EntityInfluence>> mSkillInfluences = new HashMap<>();
 
     public PlayerEntity(GameWorld world, AliveEntityDesc desc, Session session) {
         super(world, session.getId(), desc);
@@ -58,7 +60,7 @@ public class PlayerEntity extends WorldAliveEntity {
                 long serverTime = Long.parseLong(split[1]);
                 int skillType = Integer.parseInt(split[2]);
                 SkillDesc skill = SkillDesc.find(desc.skills, skillType);
-                if (skill == null || skill.energyPrice > energy) {
+                if (skill == null || (SkillDesc.typeOf(skill.type) == SkillDesc.SkillType.SINGLE && skill.energyPrice > energy)) {
                     break;
                 }
 
@@ -67,13 +69,22 @@ public class PlayerEntity extends WorldAliveEntity {
                     int y = Integer.parseInt(split[4]);
                     int angle = Integer.parseInt(split[5]);
                     objectsToAdd.add(handleShotSkill(serverTime, skill, x, y, angle));
+                } else if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
+                    EntityInfluence energyConsumption = new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION, time, getId(), skill.energyPrice);
+                    mSkillInfluences.put(skillType, Collections.singletonList(energyConsumption));
+                    attachInfluence(energyConsumption);
                 }
                 break;
             }
 
             case GameProtocol.CLIENT_MSG_SKILL_OFF: {
                 int skillId = Integer.parseInt(split[2]);
-//                long duration = Long.parseLong(split[3]);
+
+                List<EntityInfluence> influences = mSkillInfluences.get(skillId);
+                if (influences != null) {
+                    for (EntityInfluence influence : influences) detachInfluence(influence);
+                }
+
                 break;
             }
         }

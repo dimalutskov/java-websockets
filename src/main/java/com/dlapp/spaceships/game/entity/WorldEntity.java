@@ -124,9 +124,9 @@ public abstract class WorldEntity {
         influences.add(influence);
     }
 
-//    public void detachInfluence(String id) {
-//        influences.removeIf(i -> i.id.equals(id));
-//    }
+    public void detachInfluence(EntityInfluence influence) {
+        influences.remove(influence);
+    }
 
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
         movement.step(time);
