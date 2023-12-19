@@ -20,9 +20,19 @@ public class EntityCollisionsHandler {
     // Types of GameObjects which can be in collision
     private final Set<Integer> collideTypes = new HashSet<>();
 
-    public EntityCollisionsHandler(WorldEntity entity, Integer... collisionTypes) {
+    public EntityCollisionsHandler(WorldEntity entity) {
         this.entity = entity;
-        this.collideTypes.addAll(Arrays.asList(collisionTypes));
+
+        switch (entity.getType()) {
+            case GameConstants.ENTITY_TYPE_SPACESHIP:
+                collideTypes.add(GameConstants.ENTITY_TYPE_SHOT);
+                break;
+
+            case GameConstants.ENTITY_TYPE_SHOT:
+                collideTypes.add(GameConstants.ENTITY_TYPE_SPACESHIP);
+                collideTypes.add(GameConstants.ENTITY_TYPE_SHOT);
+                break;
+        }
     }
 
     boolean canBeCollided(int type) {

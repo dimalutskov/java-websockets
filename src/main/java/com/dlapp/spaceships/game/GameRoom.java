@@ -15,7 +15,7 @@ public class GameRoom implements GameWorld {
     private final String id;
 
     private final WorldCollisionsHandler collisionsHandler = new WorldCollisionsHandler();
-    private final List<WorldEntity> gameObjects = new ArrayList(100); // TODO
+    private final List<WorldEntity> entities = new ArrayList(100); // TODO
     private final List<PlayerEntity> players = new ArrayList();
 
     private final List<WorldState> worldStates = new ArrayList<>();
@@ -34,18 +34,25 @@ public class GameRoom implements GameWorld {
     }
 
     @Override
-    public void addEntity(WorldEntity entity, EntityCollisionsHandler entityCollisionsHandler) {
-        gameObjects.add(entity);
+    public void addEntity(WorldEntity entity) {
+        entities.add(entity);
+
+        EntityCollisionsHandler entityCollisionsHandler = new EntityCollisionsHandler(entity);
         collisionsHandler.registerHandler(entityCollisionsHandler);
+    }
+
+    @Override
+    public WorldEntity getEntity(String id) {
+        for (WorldEntity entity : entities) {
+            if (entity.getId().equals(id)) return entity;
+        }
+        return null;
     }
 
     public synchronized void connectPlayer(PlayerEntity player) {
         players.add(player);
-        gameObjects.add(player);
 
-        // Collisions
-        EntityCollisionsHandler playerCollisions = new EntityCollisionsHandler(player, GameConstants.ENTITY_TYPE_SPACESHIP, GameConstants.ENTITY_TYPE_SHOT);
-        collisionsHandler.registerHandler(playerCollisions);
+        addEntity(player);
 
         if (players.size() == 1) {
             startWorld();
@@ -60,7 +67,7 @@ public class GameRoom implements GameWorld {
     public synchronized void disconnectPlayer(PlayerEntity player) {
         // TODO destroy, collisions
         players.remove(player);
-        gameObjects.remove(player);
+        entities.remove(player);
         if (players.size() == 0) {
             stopWorld();
         }
@@ -96,7 +103,7 @@ public class GameRoom implements GameWorld {
             player.onMessage(split, objectsToAdd);
 //            gameObjects.addAll(objectsToAdd);
 
-            if (!gameObjects.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
+            if (!entities.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
                 // Response client with new objects ids
                 StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")
                         .append(split[1]).append(";"); // skillId
@@ -114,7 +121,7 @@ public class GameRoom implements GameWorld {
         collisionsHandler.checkCollisions();
 
         List<WorldEntity> objectsToAdd = new ArrayList<>();
-        Iterator<WorldEntity> objectsIt = gameObjects.listIterator();
+        Iterator<WorldEntity> objectsIt = entities.listIterator();
         while (objectsIt.hasNext()) {
             WorldEntity object = objectsIt.next();
             object.proceed(time, objectsToAdd);
@@ -124,7 +131,7 @@ public class GameRoom implements GameWorld {
             }
         }
         for (WorldEntity addedObject : objectsToAdd) {
-            gameObjects.add(addedObject);
+            entities.add(addedObject);
             onObjectAdded(addedObject, time);
         }
 
@@ -145,7 +152,7 @@ public class GameRoom implements GameWorld {
         stateString.append(time).append(";");
 
         List<WorldEntity> objects = new ArrayList<>();
-        for (WorldEntity obj : gameObjects) {
+        for (WorldEntity obj : entities) {
             objects.add(obj.copy());
             stateString.append(obj.getStateString()).append(";");
         }
@@ -198,10 +205,10 @@ public class GameRoom implements GameWorld {
 
         // Static object
         WorldEntity staticObject = new WorldEntity.Simple("test_static", GameConstants.ENTITY_TYPE_SPACESHIP, 100);
-        EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject, GameConstants.ENTITY_TYPE_SHOT);
+        EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject);
         collisionsHandler.registerHandler(collisions);
         staticObject.update(System.currentTimeMillis(), 230, 230, 0, 0);
-        gameObjects.add(staticObject);
+        entities.add(staticObject);
     }
 
     private void updateTestObjects(long time) {

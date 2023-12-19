@@ -45,10 +45,7 @@ public class WorldAliveEntity extends WorldEntity {
         shot.update(time, x, y, angle, speed);
         shot.setDestroyTime(time + 5000);
 
-        EntityCollisionsHandler entityCollisionsHandler = new EntityCollisionsHandler(shot,
-                GameConstants.ENTITY_TYPE_SPACESHIP,
-                GameConstants.SKILL_TYPE_SHOT);
-        gameWorld.addEntity(shot, entityCollisionsHandler);
+        gameWorld.addEntity(shot);
 
         return shot;
     }
