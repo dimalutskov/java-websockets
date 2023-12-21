@@ -11,7 +11,7 @@ public class AliveEntityDesc {
 
     static {
         SPACESHIP_DESC = new AliveEntityDesc(GameConstants.ENTITY_TYPE_SPACESHIP, 100, 100, 100,
-                Arrays.asList(SkillDesc.SKILL_SHOT, SkillDesc.SKILL_ACCELERATION));
+                Arrays.asList(SkillDesc.SKILL_ENERGY_RECOVER, SkillDesc.SKILL_SHOT, SkillDesc.SKILL_ACCELERATION));
     }
 
     public final int type;
@@ -26,6 +26,13 @@ public class AliveEntityDesc {
         this.health = health;
         this.energy = energy;
         this.skills = skills;
+    }
+
+    public SkillDesc getSkill(int skillType) {
+        for (SkillDesc skillDesc : skills) {
+            if (skillDesc.type == skillType) return skillDesc;
+        }
+        return null;
     }
 
 }

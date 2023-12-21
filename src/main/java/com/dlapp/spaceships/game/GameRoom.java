@@ -103,7 +103,7 @@ public class GameRoom implements GameWorld {
             player.onMessage(split, objectsToAdd);
 //            gameObjects.addAll(objectsToAdd);
 
-            if (!entities.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
+            if (!objectsToAdd.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
                 // Response client with new objects ids
                 StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")
                         .append(split[1]).append(";"); // skillId
@@ -195,19 +195,18 @@ public class GameRoom implements GameWorld {
     private void addTestObjects() {
         for (int i = 0; i < 3; i++) {
             String id = "test_" + i;
-            WorldEntity object = new WorldEntity.Simple(id, GameConstants.ENTITY_TYPE_SPACESHIP, 100);
             int x = (int) (200 * Math.random());
             int y = (int) (200 * Math.random());
             int angle = (int) (180 * Math.random());
             int speed = (int) (30 + 50 * Math.random());
+            WorldEntity object = new WorldEntity.Simple(id, GameConstants.ENTITY_TYPE_SPACESHIP, 100, x, y, angle);
             object.update(System.currentTimeMillis(), x, y, angle, speed);
         }
 
         // Static object
-        WorldEntity staticObject = new WorldEntity.Simple("test_static", GameConstants.ENTITY_TYPE_SPACESHIP, 100);
+        WorldEntity staticObject = new WorldEntity.Simple("test_static", GameConstants.ENTITY_TYPE_SPACESHIP, 100, 230, 230, 0);
         EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject);
         collisionsHandler.registerHandler(collisions);
-        staticObject.update(System.currentTimeMillis(), 230, 230, 0, 0);
         entities.add(staticObject);
     }
 

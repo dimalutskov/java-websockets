@@ -11,8 +11,10 @@ public class SkillDesc {
         CONTINUOUS // Skill applied continuously while it's activated
     }
 
-    // size, damage, speed, fire rate
-    public static final SkillDesc SKILL_SHOT = new SkillDesc(GameConstants.SKILL_TYPE_SHOT, 2, 8, 20, 300, 1000);
+    public static final SkillDesc SKILL_ENERGY_RECOVER = new SkillDesc(GameConstants.SKILL_TYPE_PASSIVE_ENERGY_RECOVER, 0, 8);
+
+    // values: size, damage, speed, fire rate
+    public static final SkillDesc SKILL_SHOT = new SkillDesc(GameConstants.SKILL_TYPE_SHOT, 2, 20, 20, 300, 1000);
     public static final SkillDesc SKILL_ACCELERATION = new SkillDesc(GameConstants.SKILL_TYPE_ACCELERATION, 30, 20, 300);
 
     public final int type;

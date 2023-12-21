@@ -1,6 +1,5 @@
 package com.dlapp.spaceships.game.entity;
 
-import com.dlapp.spaceships.game.EntityCollisionsHandler;
 import com.dlapp.spaceships.game.GameConstants;
 import com.dlapp.spaceships.game.GameWorld;
 import com.dlapp.spaceships.game.desc.AliveEntityDesc;
@@ -15,18 +14,13 @@ public class WorldAliveEntity extends WorldEntity {
     protected float health;
     protected float energy;
 
-    public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc) {
-        super(id, desc.type, desc.size);
-        this.gameWorld = world;
-        this.desc = desc;
-        this.health = desc.health;
-        this.energy = desc.energy;
-    }
-
     public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc, int x, int y, int angle) {
         super(id, desc.type, desc.size, x, y, angle);
         this.gameWorld = world;
         this.desc = desc;
+        this.health = desc.health;
+        this.energy = desc.energy;
+        initConstantPassiveSkills();
     }
 
     @Override
@@ -37,8 +31,19 @@ public class WorldAliveEntity extends WorldEntity {
         return result;
     }
 
+    private void initConstantPassiveSkills() {
+        long time = System.currentTimeMillis();
+        for (SkillDesc skill : desc.skills) {
+            switch (skill.type) {
+                case GameConstants.SKILL_TYPE_PASSIVE_ENERGY_RECOVER:
+                    attachInfluence(new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_RECOVER, time, skill.type, getId(), skill.values[0]));
+                    break;
+            }
+        }
+    }
+
     WorldEntity handleShotSkill(long time, SkillDesc skill, int x, int y, int angle) {
-        attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_ENERGY_CONSUMPTION, time, getId(), skill.energyPrice));
+        attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_ENERGY_CONSUMPTION, time, skill.type, getId(), skill.energyPrice));
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(skill, getId(), x, y, angle);
         int speed = skill.values[2]; // TODO
@@ -62,8 +67,12 @@ public class WorldAliveEntity extends WorldEntity {
                 return true;
 
             case EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION:
-                float consumption = (time - influence.getApplyTime() / 1000.0f) * influence.values[0];
-                energy -= consumption;
+            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_RECOVER:
+                float consumption = ((time - influence.getApplyTime()) / 1000.0f) * influence.values[0];
+                int k = influence.type == EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION ? -1 : 1;
+                energy = energy + consumption * k;
+                if (energy < 0) energy = 0;
+                if (energy > desc.energy) energy = desc.energy;
                 influence.setApplyTime(time);
                 return false;
         }

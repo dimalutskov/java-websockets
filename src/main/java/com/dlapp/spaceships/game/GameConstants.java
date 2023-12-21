@@ -8,6 +8,8 @@ public class GameConstants {
     public static final int ENTITY_TYPE_SHOT = 2;
 
     /////////////////// SKILL TYPES ///////////////
+    public static final int SKILL_TYPE_PASSIVE_ENERGY_RECOVER = 101;
+
     public static final int SKILL_TYPE_SHOT = 1;
     public static final int SKILL_TYPE_ACCELERATION = 2;
 

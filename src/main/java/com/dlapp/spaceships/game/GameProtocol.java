@@ -74,5 +74,9 @@ public class GameProtocol {
 // Client:
 // setServerDelay;200
 // move;0;20;20;45;50
+
 // skillON;0;1;0;0;45
 // skillOFF;0;1
+
+// skillON;0;2;
+// skillOFF;0;2

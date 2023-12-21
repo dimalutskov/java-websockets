@@ -33,7 +33,7 @@ public class SingleShotEntity extends WorldEntity {
         }
 
         super.onCollision(entity);
-        entity.attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_DAMAGE, System.currentTimeMillis(), getId(), skillDesc.values[1]));
+        entity.attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
         destroy();
     }
 

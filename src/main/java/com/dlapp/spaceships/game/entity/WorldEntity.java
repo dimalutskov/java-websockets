@@ -30,10 +30,6 @@ public abstract class WorldEntity {
 
     private final Rectangle2D.Double rect = new Rectangle2D.Double();
 
-    public WorldEntity(String id, int type, int size) {
-        this(id, type, size, 0, 0, 0);
-    }
-
     public WorldEntity(String id, int type, int size, int x, int y, int angle) {
         this.id = id;
         this.type = type;
@@ -178,10 +174,6 @@ public abstract class WorldEntity {
     }
 
     public static class Simple extends WorldEntity {
-
-        public Simple(String id, int type, int size) {
-            super(id, type, size);
-        }
 
         public Simple(String id, int type, int size, int x, int y, int angle) {
             super(id, type, size, x, y, angle);

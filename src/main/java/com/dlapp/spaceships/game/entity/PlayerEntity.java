@@ -18,7 +18,7 @@ public class PlayerEntity extends WorldAliveEntity {
     private final Map<Integer, List<EntityInfluence>> mSkillInfluences = new HashMap<>();
 
     public PlayerEntity(GameWorld world, AliveEntityDesc desc, Session session) {
-        super(world, session.getId(), desc);
+        super(world, session.getId(), desc, 0, 0, 0);
         this.desc = desc;
         this.session = session;
     }
@@ -58,9 +58,15 @@ public class PlayerEntity extends WorldAliveEntity {
 
             case GameProtocol.CLIENT_MSG_SKILL_ON: {
                 long serverTime = Long.parseLong(split[1]);
+                // TODO test
+                if (serverTime == 0) {
+                    serverTime = System.currentTimeMillis();
+                }
                 int skillType = Integer.parseInt(split[2]);
                 SkillDesc skill = SkillDesc.find(desc.skills, skillType);
-                if (skill == null || (SkillDesc.typeOf(skill.type) == SkillDesc.SkillType.SINGLE && skill.energyPrice > energy)) {
+                int requiredEnergy = SkillDesc.typeOf(skill.type) == SkillDesc.SkillType.CONTINUOUS
+                        ? skill.energyPrice / 2 : skill.energyPrice;
+                if (requiredEnergy > energy) {
                     break;
                 }
 
@@ -70,7 +76,7 @@ public class PlayerEntity extends WorldAliveEntity {
                     int angle = Integer.parseInt(split[5]);
                     objectsToAdd.add(handleShotSkill(serverTime, skill, x, y, angle));
                 } else if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
-                    EntityInfluence energyConsumption = new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION, time, getId(), skill.energyPrice);
+                    EntityInfluence energyConsumption = new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, getId(), skill.energyPrice);
                     mSkillInfluences.put(skillType, Collections.singletonList(energyConsumption));
                     attachInfluence(energyConsumption);
                 }
@@ -90,6 +96,20 @@ public class PlayerEntity extends WorldAliveEntity {
         }
     }
 
+    @Override
+    public void proceed(long time, List<WorldEntity> objectsToAdd) {
+        super.proceed(time, objectsToAdd);
 
-
+        if (energy == 0) {
+            // Detach all passive skills
+            mSkillInfluences.entrySet().removeIf(entry -> {
+                SkillDesc skill = desc.getSkill(entry.getKey());
+                if (skill.energyPrice > 0) {
+                    for (EntityInfluence influence : entry.getValue()) detachInfluence(influence);
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
 }
