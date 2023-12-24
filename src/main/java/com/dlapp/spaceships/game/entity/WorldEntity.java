@@ -86,7 +86,7 @@ public abstract class WorldEntity {
         return isDestroyed;
     }
 
-    protected void destroy() {
+    public void destroy() {
         isDestroyed = true;
     }
 

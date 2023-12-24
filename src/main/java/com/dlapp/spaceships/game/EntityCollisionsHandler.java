@@ -1,13 +1,8 @@
 package com.dlapp.spaceships.game;
 
 import com.dlapp.spaceships.MathUtils;
+import com.dlapp.spaceships.game.entity.SingleShotEntity;
 import com.dlapp.spaceships.game.entity.WorldEntity;
-
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Describes how the GameObject can be in collision with another GameObjects
@@ -17,35 +12,33 @@ import java.util.Set;
 public class EntityCollisionsHandler {
     final WorldEntity entity;
 
-    // Types of GameObjects which can be in collision
-    private final Set<Integer> collideTypes = new HashSet<>();
-
     public EntityCollisionsHandler(WorldEntity entity) {
         this.entity = entity;
-
-        switch (entity.getType()) {
-            case GameConstants.ENTITY_TYPE_SPACESHIP:
-                collideTypes.add(GameConstants.ENTITY_TYPE_SHOT);
-                break;
-
-            case GameConstants.ENTITY_TYPE_SHOT:
-                collideTypes.add(GameConstants.ENTITY_TYPE_SPACESHIP);
-                collideTypes.add(GameConstants.ENTITY_TYPE_SHOT);
-                break;
-        }
     }
 
-    boolean canBeCollided(int type) {
-        return collideTypes.contains(type);
+    boolean canBeCollided(WorldEntity otherEntity) {
+        switch (this.entity.getType()) {
+            case GameConstants.ENTITY_TYPE_SPACESHIP:
+                if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SHOT) {
+                    String shotOwnerId = SingleShotEntity.getOwnerId(otherEntity.getId());
+                    return !shotOwnerId.equals(entity.getId());
+                }
+                break;
+            case GameConstants.ENTITY_TYPE_SHOT:
+                if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SPACESHIP) {
+                    String shotOwnerId = SingleShotEntity.getOwnerId(entity.getId());
+                    return !shotOwnerId.equals(otherEntity.getId());
+                }
+                if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SHOT) {
+                    return true;
+                }
+                break;
+        }
+        return false;
     }
 
     boolean hasCollision(EntityCollisionsHandler handler) {
-        if (canBeCollided(handler.entity.getType())) {
-            Rectangle2D.Double obj1CollisionRect = entity.getRect();
-            Rectangle2D.Double obj2CollisionRect = handler.entity.getRect();
-            return MathUtils.intersects(obj1CollisionRect, obj2CollisionRect);
-        }
-        return false;
+        return MathUtils.intersects(entity.getRect(), handler.entity.getRect());
     }
 
 }

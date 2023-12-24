@@ -48,7 +48,7 @@ public class WorldCollisionsHandler {
     }
 
     void checkCollision(EntityCollisionsHandler handler1, EntityCollisionsHandler handler2) {
-        if (handler1.canBeCollided(handler2.entity.getType())) {
+        if (handler1.canBeCollided(handler2.entity)) {
             // Obj1 collisions
             Set<WorldEntity> obj1Collisions = collisions.computeIfAbsent(handler1.entity.getId(), k -> new HashSet<>());
 

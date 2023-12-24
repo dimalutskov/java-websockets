@@ -67,7 +67,7 @@ public class GameRoom implements GameWorld {
     public synchronized void disconnectPlayer(PlayerEntity player) {
         // TODO destroy, collisions
         players.remove(player);
-        entities.remove(player);
+        player.destroy();
         if (players.size() == 0) {
             stopWorld();
         }
