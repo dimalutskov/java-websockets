@@ -1,6 +1,9 @@
 package com.dlapp.spaceships.game;
 
+import com.dlapp.spaceships.game.desc.AliveEntityDesc;
+import com.dlapp.spaceships.game.entity.EntityInfluence;
 import com.dlapp.spaceships.game.entity.PlayerEntity;
+import com.dlapp.spaceships.game.entity.WorldAliveEntity;
 import com.dlapp.spaceships.game.entity.WorldEntity;
 
 import java.util.*;
@@ -47,6 +50,29 @@ public class GameRoom implements GameWorld {
             if (entity.getId().equals(id)) return entity;
         }
         return null;
+    }
+
+    @Override
+    public void onEntityApplyInfluence(WorldEntity entity, EntityInfluence influence, int... values) {
+        StringBuilder msg = new StringBuilder(GameProtocol.SERVER_MSG_INFLUENCE_ON + ";" +
+                System.currentTimeMillis() + ";" +
+                entity.getId() + ";" +
+                influence.type + ";" +
+                influence.skillType + ";" +
+                influence.ownerId + ";");
+        for (int value : values) msg.append(value).append(";");
+        broadcast(msg.toString());
+    }
+
+    @Override
+    public void onEntityDetachInfluence(WorldEntity entity, EntityInfluence influence) {
+        String msg = GameProtocol.SERVER_MSG_INFLUENCE_OFF + ";" +
+                System.currentTimeMillis() + ";" +
+                entity.getId() + ";" +
+                influence.type + ";" +
+                influence.skillType + ";" +
+                influence.ownerId;
+        broadcast(msg);
     }
 
     public synchronized void connectPlayer(PlayerEntity player) {
@@ -193,18 +219,18 @@ public class GameRoom implements GameWorld {
     private List<WorldEntity> testObjects = new ArrayList<>();
     private long lastTestObjectsUpdate = 0;
     private void addTestObjects() {
-        for (int i = 0; i < 3; i++) {
-            String id = "test_" + i;
-            int x = (int) (200 * Math.random());
-            int y = (int) (200 * Math.random());
-            int angle = (int) (180 * Math.random());
-            int speed = (int) (30 + 50 * Math.random());
-            WorldEntity object = new WorldEntity.Simple(id, GameConstants.ENTITY_TYPE_SPACESHIP, 100, x, y, angle);
-            object.update(System.currentTimeMillis(), x, y, angle, speed);
-        }
+//        for (int i = 0; i < 3; i++) {
+//            String id = "test_" + i;
+//            int x = (int) (200 * Math.random());
+//            int y = (int) (200 * Math.random());
+//            int angle = (int) (180 * Math.random());
+//            int speed = (int) (30 + 50 * Math.random());
+//            WorldEntity object = new WorldEntity.Simple(this, id, GameConstants.ENTITY_TYPE_SPACESHIP, 100, x, y, angle);
+//            object.update(System.currentTimeMillis(), x, y, angle, speed);
+//        }
 
         // Static object
-        WorldEntity staticObject = new WorldEntity.Simple("test_static", GameConstants.ENTITY_TYPE_SPACESHIP, 100, 230, 230, 0);
+        WorldEntity staticObject = new WorldAliveEntity(this, "test_static", AliveEntityDesc.SPACESHIP_DESC, 230, 230, 0);
         EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject);
         collisionsHandler.registerHandler(collisions);
         entities.add(staticObject);

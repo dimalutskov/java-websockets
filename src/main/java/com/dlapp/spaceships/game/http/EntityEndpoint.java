@@ -31,19 +31,19 @@ public class EntityEndpoint extends BaseHttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try {
-            JsonNode jsonNode = sObjectMapper.readTree(readRequestBody(req));
-            String id = ENTITY_PREFIX + sEntityIndex++;
-            WorldEntity entity = new WorldEntity.Simple(id, GameConstants.ENTITY_TYPE_SPACESHIP,
-                    jsonNode.get("size").asInt(),
-                    jsonNode.get("x").asInt(),
-                    jsonNode.get("y").asInt(),
-                    jsonNode.get("angle").asInt());
-            ServerApp.instance().getRoom().addEntity(entity);
-            sendResponse(resp, CONTENT_TYPE_JSON, entity.toJson().toString());
-        } catch (Exception e) {
-            sendError(resp, e.getMessage());
-        }
+//        try {
+//            JsonNode jsonNode = sObjectMapper.readTree(readRequestBody(req));
+//            String id = ENTITY_PREFIX + sEntityIndex++;
+//            WorldEntity entity = new WorldEntity.Simple(ServerApp.instance().getRoom(), id, GameConstants.ENTITY_TYPE_SPACESHIP,
+//                    jsonNode.get("size").asInt(),
+//                    jsonNode.get("x").asInt(),
+//                    jsonNode.get("y").asInt(),
+//                    jsonNode.get("angle").asInt());
+//            ServerApp.instance().getRoom().addEntity(entity);
+//            sendResponse(resp, CONTENT_TYPE_JSON, entity.toJson().toString());
+//        } catch (Exception e) {
+//            sendError(resp, e.getMessage());
+//        }
     }
 
     private static String readEntityIdPath(HttpServletRequest request) {

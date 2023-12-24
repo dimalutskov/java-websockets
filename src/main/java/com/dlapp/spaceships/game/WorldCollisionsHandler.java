@@ -32,8 +32,8 @@ public class WorldCollisionsHandler {
                             obj1Handler.entity.onCollisionEnd(entity);
                             entity.onCollisionEnd(obj1Handler.entity);
                         }
-                        positionsToRemove.add(i);
                     }
+                    positionsToRemove.add(i);
                     break;
                 }
 

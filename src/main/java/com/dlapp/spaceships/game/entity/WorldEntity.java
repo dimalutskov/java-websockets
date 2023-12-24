@@ -1,5 +1,6 @@
 package com.dlapp.spaceships.game.entity;
 
+import com.dlapp.spaceships.game.GameWorld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -8,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class WorldEntity {
+
+    protected final GameWorld gameWorld;
 
     private final String id;
     private final int type;
@@ -30,13 +33,16 @@ public abstract class WorldEntity {
 
     private final Rectangle2D.Double rect = new Rectangle2D.Double();
 
-    public WorldEntity(String id, int type, int size, int x, int y, int angle) {
+    public WorldEntity(GameWorld world, String id, int type, int size, int x, int y, int angle) {
+        this.gameWorld = world;
         this.id = id;
         this.type = type;
         this.size = size;
         this.x = x;
         this.y = y;
         this.angle = angle;
+        movement.update(x, y);
+        movement.setAngle(angle);
     }
 
     public abstract WorldEntity copy();
@@ -122,6 +128,7 @@ public abstract class WorldEntity {
 
     public void detachInfluence(EntityInfluence influence) {
         influences.remove(influence);
+        gameWorld.onEntityDetachInfluence(this, influence);
     }
 
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
@@ -171,18 +178,6 @@ public abstract class WorldEntity {
         result.put("y", y);
         result.put("angle", angle);
         return result;
-    }
-
-    public static class Simple extends WorldEntity {
-
-        public Simple(String id, int type, int size, int x, int y, int angle) {
-            super(id, type, size, x, y, angle);
-        }
-
-        @Override
-        public Simple copy() {
-            return new Simple(getId(), getType(), getSize(), getX(), getY(), getAngle());
-        }
     }
 
 }

@@ -6,17 +6,17 @@ import com.dlapp.spaceships.game.desc.AliveEntityDesc;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static com.dlapp.spaceships.game.GameConstants.INFLUENCE_CONTINUOUS_ENERGY_RECOVER;
+
 public class WorldAliveEntity extends WorldEntity {
 
-    protected final GameWorld gameWorld;
     protected final AliveEntityDesc desc;
 
     protected float health;
     protected float energy;
 
     public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc, int x, int y, int angle) {
-        super(id, desc.type, desc.size, x, y, angle);
-        this.gameWorld = world;
+        super(world, id, desc.type, desc.size, x, y, angle);
         this.desc = desc;
         this.health = desc.health;
         this.energy = desc.energy;
@@ -36,19 +36,26 @@ public class WorldAliveEntity extends WorldEntity {
         for (SkillDesc skill : desc.skills) {
             switch (skill.type) {
                 case GameConstants.SKILL_TYPE_PASSIVE_ENERGY_RECOVER:
-                    attachInfluence(new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_RECOVER, time, skill.type, getId(), skill.values[0]));
+                    attachInfluence(new EntityInfluence(INFLUENCE_CONTINUOUS_ENERGY_RECOVER, time, skill.type, getId(), skill.values[0]));
                     break;
             }
         }
     }
 
     WorldEntity handleShotSkill(long time, SkillDesc skill, int x, int y, int angle) {
-        attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_ENERGY_CONSUMPTION, time, skill.type, getId(), skill.energyPrice));
+        attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, time, skill.type, getId(), skill.energyPrice));
         // Create shot object
-        SingleShotEntity shot = new SingleShotEntity(skill, getId(), x, y, angle);
+        SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), x, y, angle);
         int speed = skill.values[2]; // TODO
         shot.update(time, x, y, angle, speed);
         shot.setDestroyTime(time + 5000);
+
+        // As player provides timestamp when shot was generated - need to check if any collisions
+        // occurred between client time and current server time
+        shot.update(System.currentTimeMillis(), angle);
+        int newX = shot.getX();
+        int newY = shot.getY();
+        // TODO
 
         gameWorld.addEntity(shot);
 
@@ -58,18 +65,23 @@ public class WorldAliveEntity extends WorldEntity {
     @Override
     protected boolean applyInfluence(EntityInfluence influence, long time) {
         switch (influence.type) {
-            case EntityInfluence.TYPE_SINGLE_ENERGY_CONSUMPTION:
-                energy -= influence.values[0];
+            case GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION:
+                this.energy = Math.max(0, this.energy - influence.values[0]);
                 return true;
 
-            case EntityInfluence.TYPE_SINGLE_DAMAGE:
-                health -= influence.values[0];
+            case GameConstants.INFLUENCE_SINGLE_DAMAGE:
+                int appliedValue = influence.values[0];
+                this.health = Math.max(0, this.health - appliedValue);
+                gameWorld.onEntityApplyInfluence(this, influence, appliedValue);
+                if (health == 0) {
+                    destroy();
+                }
                 return true;
 
-            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION:
-            case EntityInfluence.TYPE_CONTINUOUS_ENERGY_RECOVER:
+            case GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION:
+            case INFLUENCE_CONTINUOUS_ENERGY_RECOVER:
                 float consumption = ((time - influence.getApplyTime()) / 1000.0f) * influence.values[0];
-                int k = influence.type == EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION ? -1 : 1;
+                int k = influence.type == GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION ? -1 : 1;
                 energy = energy + consumption * k;
                 if (energy < 0) energy = 0;
                 if (energy > desc.energy) energy = desc.energy;
@@ -82,11 +94,6 @@ public class WorldAliveEntity extends WorldEntity {
 
     @Override
     public void onCollision(WorldEntity entity) {
-        if (entity.getType() == GameConstants.ENTITY_TYPE_SHOT && SingleShotEntity.getOwnerId(entity.getId()).equals(getId())) {
-            // Collision with the own shot - ignore it
-            return;
-        }
-
         super.onCollision(entity);
     }
 

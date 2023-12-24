@@ -1,6 +1,7 @@
 package com.dlapp.spaceships.game.entity;
 
 import com.dlapp.spaceships.game.GameConstants;
+import com.dlapp.spaceships.game.GameWorld;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 
 public class SingleShotEntity extends WorldEntity {
@@ -11,29 +12,24 @@ public class SingleShotEntity extends WorldEntity {
 
     private final SkillDesc skillDesc;
 
-    private SingleShotEntity(String id, SkillDesc skillDesc, int x, int y, int angle) {
-        super(id, GameConstants.ENTITY_TYPE_SHOT, skillDesc.values[0], x, y, angle);
+    private SingleShotEntity(GameWorld world, String id, SkillDesc skillDesc, int x, int y, int angle) {
+        super(world, id, GameConstants.ENTITY_TYPE_SHOT, skillDesc.values[0], x, y, angle);
         this.skillDesc = skillDesc;
     }
 
-    public SingleShotEntity(SkillDesc skillDesc, String ownerId, int x, int y, int angle) {
-        this(ownerId + ID_SEPARATOR + generatedShotId++, skillDesc, x, y, angle);
+    public SingleShotEntity(GameWorld world, SkillDesc skillDesc, String ownerId, int x, int y, int angle) {
+        this(world, ownerId + ID_SEPARATOR + generatedShotId++, skillDesc, x, y, angle);
     }
 
     @Override
     public WorldEntity copy() {
-        return new SingleShotEntity(getId(),skillDesc, getX(), getY(), getAngle());
+        return new SingleShotEntity(gameWorld, getId(), skillDesc, getX(), getY(), getAngle());
     }
 
     @Override
     public void onCollision(WorldEntity entity) {
-        if (getOwnerId(getId()).equals(entity.getId())) {
-            // Collision with the owner - ignore it
-            return;
-        }
-
         super.onCollision(entity);
-        entity.attachInfluence(new EntityInfluence(EntityInfluence.TYPE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
+        entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
         destroy();
     }
 

@@ -76,7 +76,7 @@ public class PlayerEntity extends WorldAliveEntity {
                     int angle = Integer.parseInt(split[5]);
                     objectsToAdd.add(handleShotSkill(serverTime, skill, x, y, angle));
                 } else if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
-                    EntityInfluence energyConsumption = new EntityInfluence(EntityInfluence.TYPE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, getId(), skill.energyPrice);
+                    EntityInfluence energyConsumption = new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, getId(), skill.energyPrice);
                     mSkillInfluences.put(skillType, Collections.singletonList(energyConsumption));
                     attachInfluence(energyConsumption);
                 }

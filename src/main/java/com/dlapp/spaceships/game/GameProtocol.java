@@ -44,6 +44,21 @@ public class GameProtocol {
      */
     public static final String SERVER_MSG_RESPONSE_SKILL_OBJECTS = "skillObjects";
 
+    /**
+     * Notify about any new active influence(skill, shot, recover, etc) applied to any world entity
+     * {MSG_TYPE};{SERVER_TIME};{ENTITY_RECEIVER_ID};{INFLUENCE_DESC};
+     * INFLUENCE_DESC - influenceType,skillType,ownerId,values(described for each type)
+     */
+    public static final String SERVER_MSG_INFLUENCE_ON = "influenceOn";
+
+    /**
+     * Notify about stop applying influence. Notice - for single influences (like single shot or one time skills)
+     * this message wont be sent
+     * {MSG_TYPE};{SERVER_TIME};{ENTITY_RECEIVER_ID};{INFLUENCE_DESC};
+     * INFLUENCE_DESC - influenceType,skillType,ownerId,values(described for each type)
+     */
+    public static final String SERVER_MSG_INFLUENCE_OFF = "influenceOff";
+
 
     /////////////////// CLIENT_MESSAGES ///////////////////////////
 
@@ -62,20 +77,20 @@ public class GameProtocol {
 
     /**
      * Provides player skill attributes
-     * {MSG_TYPE};{SERVER_ESTIMATED_TIME};{skillID};{skillDuration};
+     * {MSG_TYPE};{SERVER_ESTIMATED_TIME};{skillID};
      */
     public static final String CLIENT_MSG_SKILL_OFF = "skillOFF";
 
     /// DEBUG MESSAGES
     public static final String CLIENT_MSG_SET_SERVER_DELAY = "setServerDelay";
 
-};
+}
 
 // Client:
 // setServerDelay;200
 // move;0;20;20;45;50
 
-// skillON;0;1;0;0;45
+// skillON;0;1;-100;-100;135
 // skillOFF;0;1
 
 // skillON;0;2;
