@@ -46,22 +46,20 @@ public class WorldAliveEntity extends WorldEntity {
         }
     }
 
-    WorldEntity handleShotSkill(long time, SkillDesc skill, int x, int y, int angle) {
-        attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, time, skill.type, getId(), skill.energyPrice));
+    WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
+        attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, shotCreatedTime, skill.type, getId(), skill.energyPrice));
         // Create shot object
-        SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), x, y, angle);
-        int speed = skill.values[2]; // TODO
-        shot.update(time, x, y, angle, speed);
-        shot.setDestroyTime(time + 5000);
+        SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
+        gameWorld.addEntity(shot);
 
         // As player provides timestamp when shot was generated - need to check if any collisions
         // occurred in "past" between client time and current server time
-        shot.update(System.currentTimeMillis(), angle);
-        int newX = shot.getState().getX();
-        int newY = shot.getState().getY();
-        // TODO
-
-        gameWorld.addEntity(shot);
+        long currentTime = System.currentTimeMillis();
+        int checkPastCollisionsCount = 3; // TODO
+        long timeStep = (currentTime - shotCreatedTime) / (checkPastCollisionsCount + 1);
+        for (int i = 0; i < checkPastCollisionsCount; i++) {
+            gameWorld.checkPastCollisions(shot, shotCreatedTime + timeStep * i);
+        }
 
         return shot;
     }

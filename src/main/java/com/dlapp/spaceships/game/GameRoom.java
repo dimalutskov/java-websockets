@@ -35,9 +35,7 @@ public class GameRoom implements GameWorld {
     @Override
     public void addEntity(WorldEntity entity) {
         entities.add(entity);
-
-        EntityCollisionsHandler entityCollisionsHandler = new EntityCollisionsHandler(entity);
-        collisionsHandler.registerHandler(entityCollisionsHandler);
+        collisionsHandler.registerEntity(entity);
     }
 
     @Override
@@ -46,6 +44,11 @@ public class GameRoom implements GameWorld {
             if (entity.getId().equals(id)) return entity;
         }
         return null;
+    }
+
+    @Override
+    public void checkPastCollisions(WorldEntity entity, long time) {
+        collisionsHandler.checkCollisions(entity, time);
     }
 
     @Override
@@ -219,8 +222,7 @@ public class GameRoom implements GameWorld {
 
         // Static object
         WorldEntity staticObject = new WorldAliveEntity(this, "test_static", AliveEntityDesc.SPACESHIP_DESC, 230, 230, 0);
-        EntityCollisionsHandler collisions = new EntityCollisionsHandler(staticObject);
-        collisionsHandler.registerHandler(collisions);
+        collisionsHandler.registerEntity(staticObject);
         entities.add(staticObject);
     }
 

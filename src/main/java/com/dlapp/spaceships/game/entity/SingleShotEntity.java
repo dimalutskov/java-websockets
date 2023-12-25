@@ -12,13 +12,36 @@ public class SingleShotEntity extends WorldEntity {
 
     private final SkillDesc skillDesc;
 
-    private SingleShotEntity(GameWorld world, String id, SkillDesc skillDesc, int x, int y, int angle) {
-        super(world, id, GameConstants.ENTITY_TYPE_SHOT, skillDesc.values[0], x, y, angle);
-        this.skillDesc = skillDesc;
+    // Shots provided by clients - created in "past"
+    private final long createTime;
+
+    public SingleShotEntity(GameWorld world, SkillDesc skillDesc, String ownerId, long createTime, int x, int y, int angle) {
+        this(world, ownerId + ID_SEPARATOR + generatedShotId++, skillDesc, createTime, x, y, angle);
     }
 
-    public SingleShotEntity(GameWorld world, SkillDesc skillDesc, String ownerId, int x, int y, int angle) {
-        this(world, ownerId + ID_SEPARATOR + generatedShotId++, skillDesc, x, y, angle);
+    private SingleShotEntity(GameWorld world, String id, SkillDesc skillDesc, long createTime, int x, int y, int angle) {
+        super(world, createTime, id, GameConstants.ENTITY_TYPE_SHOT, skillDesc.values[0], x, y, angle);
+        this.skillDesc = skillDesc;
+        this.createTime = createTime;
+
+        int speed = skillDesc.values[2]; // TODO
+        update(createTime, x, y, angle, speed);
+        setDestroyTime(createTime + 5000);
+
+        // Add actual state
+        long currentTime = System.currentTimeMillis();
+        update(currentTime, angle);
+        addNewState(currentTime);
+    }
+
+    @Override
+    public EntityState findState(long time) {
+        EntityState current = getState();
+        EntityState old = super.findState(createTime);
+        float progress = (time - old.createTime) / (float) (current.createTime - old.createTime);
+        float x = old.getX() + (current.getX() - old.getX()) * progress;
+        float y = old.getY() + (current.getY() - old.getY()) * progress;
+        return new EntityState(time, current.getSize(), (int) x, (int) y, current.getAngle());
     }
 
     @Override
