@@ -10,8 +10,6 @@ import java.util.*;
 
 public class GameRoom implements GameWorld {
 
-    private static final int WORLD_STATES_KEEP_COUNT = 3;
-
     private static final long UPDATE_FRAME_INTERVAL = 25;
     private static final long STATE_BROADCAST_INTERVAL = 1000;
 
@@ -20,8 +18,6 @@ public class GameRoom implements GameWorld {
     private final WorldCollisionsHandler collisionsHandler = new WorldCollisionsHandler();
     private final List<WorldEntity> entities = new ArrayList(100); // TODO
     private final List<PlayerEntity> players = new ArrayList();
-
-    private final List<WorldState> worldStates = new ArrayList<>();
 
     private Timer gameProcessingTimer;
 
@@ -161,7 +157,7 @@ public class GameRoom implements GameWorld {
             onObjectAdded(addedObject, time);
         }
 
-        updateTestObjects(time);
+//        updateTestObjects(time);
     }
 
     private void onObjectAdded(WorldEntity object, long time) {
@@ -177,16 +173,8 @@ public class GameRoom implements GameWorld {
                 .append(GameProtocol.SERVER_MSG_STATE).append(";");
         stateString.append(time).append(";");
 
-        List<WorldEntity> objects = new ArrayList<>();
         for (WorldEntity obj : entities) {
-            objects.add(obj.copy());
             stateString.append(obj.getStateString()).append(";");
-        }
-
-        WorldState state = new WorldState(time, objects);
-        worldStates.add(state);
-        if (worldStates.size() > WORLD_STATES_KEEP_COUNT) {
-            worldStates.remove(0);
         }
 
         broadcast(stateString.toString());
@@ -236,55 +224,51 @@ public class GameRoom implements GameWorld {
         entities.add(staticObject);
     }
 
-    private void updateTestObjects(long time) {
-        if (lastTestObjectsUpdate != 0 && time - lastTestObjectsUpdate > 5000) {
-            for (WorldEntity obj : testObjects) {
-                obj.update(time, 0, 0, 0, 0);
-                obj.update(time + 1, (int) (360 * Math.random()), (int) (30 + 50 * Math.random()));
-            }
-            lastTestObjectsUpdate = time;
-            return;
-        }
-
-        for (WorldEntity obj : testObjects) {
-            double angle = 0;
-            if (obj.getX() > 500) {
-                if (obj.getY() < 0) {
-                    angle = 270 - 90 * Math.random();
-                } else {
-                    angle = 270 + 90 * Math.random();
-                }
-            }
-            if (obj.getX() < -500) {
-                if (obj.getY() < 0) {
-                    angle = 90 + 90 * Math.random();
-                } else {
-                    angle = 90 - 90 * Math.random();
-                }
-            }
-            if (obj.getY() > 500) {
-                if (obj.getX() < 0) {
-                    angle = 0 + 90 * Math.random();
-                } else {
-                    angle = 270 + 90 * Math.random();
-                }
-            }
-            if (obj.getY() < - 500) {
-                if (obj.getX() < 0) {
-                    angle = 90 + 90 * Math.random();
-                } else {
-                    angle = 180 + 90 * Math.random();
-                }
-            }
-            if (angle != 0) {
-                obj.update(time, (int) angle);
-            }
-        }
-        lastTestObjectsUpdate = time;
-    }
-
-    public WorldState getLastState() {
-        return worldStates.isEmpty() ? null : worldStates.get(worldStates.size() - 1);
-    }
+//    private void updateTestObjects(long time) {
+//        if (lastTestObjectsUpdate != 0 && time - lastTestObjectsUpdate > 5000) {
+//            for (WorldEntity obj : testObjects) {
+//                obj.update(time, 0, 0, 0, 0);
+//                obj.update(time + 1, (int) (360 * Math.random()), (int) (30 + 50 * Math.random()));
+//            }
+//            lastTestObjectsUpdate = time;
+//            return;
+//        }
+//
+//        for (WorldEntity obj : testObjects) {
+//            double angle = 0;
+//            if (obj.getX() > 500) {
+//                if (obj.getY() < 0) {
+//                    angle = 270 - 90 * Math.random();
+//                } else {
+//                    angle = 270 + 90 * Math.random();
+//                }
+//            }
+//            if (obj.getX() < -500) {
+//                if (obj.getY() < 0) {
+//                    angle = 90 + 90 * Math.random();
+//                } else {
+//                    angle = 90 - 90 * Math.random();
+//                }
+//            }
+//            if (obj.getY() > 500) {
+//                if (obj.getX() < 0) {
+//                    angle = 0 + 90 * Math.random();
+//                } else {
+//                    angle = 270 + 90 * Math.random();
+//                }
+//            }
+//            if (obj.getY() < - 500) {
+//                if (obj.getX() < 0) {
+//                    angle = 90 + 90 * Math.random();
+//                } else {
+//                    angle = 180 + 90 * Math.random();
+//                }
+//            }
+//            if (angle != 0) {
+//                obj.update(time, (int) angle);
+//            }
+//        }
+//        lastTestObjectsUpdate = time;
+//    }
 
 }

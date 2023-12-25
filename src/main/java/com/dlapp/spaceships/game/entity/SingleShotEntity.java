@@ -22,11 +22,6 @@ public class SingleShotEntity extends WorldEntity {
     }
 
     @Override
-    public WorldEntity copy() {
-        return new SingleShotEntity(gameWorld, getId(), skillDesc, getX(), getY(), getAngle());
-    }
-
-    @Override
     public void onCollision(WorldEntity entity) {
         super.onCollision(entity);
         entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));

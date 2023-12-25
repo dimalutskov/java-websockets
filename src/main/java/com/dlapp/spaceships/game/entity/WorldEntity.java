@@ -7,22 +7,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
-public abstract class WorldEntity {
+public class WorldEntity {
+
+    // States will be kept by this time
+    private static final long KEEP_STATES_TIME = 2000;
 
     protected final GameWorld gameWorld;
 
     private final String id;
     private final int type;
 
-    private int size;
-
-    private int x;
-    private int y;
-    private int angle;
-
-    private int prevX;
-    private int prevY;
+    private final Stack<EntityState> states = new Stack<>();
 
     private long destroyTime;
     private boolean isDestroyed;
@@ -37,15 +34,14 @@ public abstract class WorldEntity {
         this.gameWorld = world;
         this.id = id;
         this.type = type;
-        this.size = size;
-        this.x = x;
-        this.y = y;
-        this.angle = angle;
+        states.push(createEntityState(System.currentTimeMillis(), size, x, y, angle));
         movement.update(x, y);
         movement.setAngle(angle);
     }
 
-    public abstract WorldEntity copy();
+    protected EntityState createEntityState(long time, int size, int x, int y, int angle) {
+        return new EntityState(time, size, x, y, angle);
+    }
 
     public String getId() {
         return id;
@@ -55,36 +51,16 @@ public abstract class WorldEntity {
         return type;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getPrevX() {
-        return prevX;
-    }
-
-    public int getPrevY() {
-        return prevY;
-    }
-
-    public int getAngle() {
-        return angle;
-    }
-
-    public int getSize() {
-        return size;
+    public EntityState getState() {
+        return states.isEmpty() ? null : states.peek();
     }
 
     public Rectangle2D.Double getRect() {
-        float halfSize = size / 2.0f;
-        rect.x = getX() - halfSize;
-        rect.y = getY() - halfSize;
-        rect.width = size;
-        rect.height = size;
+        float halfSize = getState().getSize() / 2.0f;
+        rect.x = getState().getX() - halfSize;
+        rect.y = getState().getY() - halfSize;
+        rect.width = getState().getSize();
+        rect.height = getState().getSize();
         return rect;
     }
 
@@ -101,13 +77,13 @@ public abstract class WorldEntity {
     }
 
     public void updateSize(int size) {
-        this.size = size;
+        getState().setSize(size);
     }
 
     public void update(long time, int x, int y, int angle, int speed) {
         movement.update(x, y);
-        this.y = y;
-        this.x = x;
+        getState().setX(x);
+        getState().setY(y);
         update(time, angle, speed);
     }
 
@@ -117,6 +93,7 @@ public abstract class WorldEntity {
     }
 
     public void update(long time, int angle, int speed) {
+        getState().setAngle(angle);
         movement.setAngle(angle);
         movement.setSpeed(speed);
         movement.step(time);
@@ -133,11 +110,14 @@ public abstract class WorldEntity {
 
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
         movement.step(time);
-        prevX = x;
-        prevY = y;
-        x = (int) movement.getCurX();
-        y = (int) movement.getCurY();
-        angle = (int) movement.getAngle();
+
+        states.push(createEntityState(time, getState().getSize(),
+                (int) movement.getCurX(),
+                (int) movement.getCurY(),
+                (int) movement.getAngle()));
+        if (time - states.get(states.size() - 1).createTime > KEEP_STATES_TIME) {
+            states.remove(states.size() - 1);
+        }
 
         influences.removeIf(i -> applyInfluence(i, time));
 
@@ -159,13 +139,10 @@ public abstract class WorldEntity {
         System.out.println("@@@ onCollisionEnd " + getId() + " " + entity.getId());
     }
 
-    public String getStateString() {
+    public final String getStateString() {
         return id + "," +
                 type + "," +
-                size + "," +
-                x + "," +
-                y + "," +
-                angle + ",";
+                getState().toStateString();
     }
 
     public ObjectNode toJson() {
@@ -173,10 +150,10 @@ public abstract class WorldEntity {
         ObjectNode result = mapper.createObjectNode();
         result.put("id", id);
         result.put("type", type);
-        result.put("size", size);
-        result.put("x", x);
-        result.put("y", y);
-        result.put("angle", angle);
+        result.put("size", getState().getSize());
+        result.put("x", getState().getX());
+        result.put("y", getState().getY());
+        result.put("angle", getState().getAngle());
         return result;
     }
 

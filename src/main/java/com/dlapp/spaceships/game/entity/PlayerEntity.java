@@ -60,13 +60,13 @@ public class PlayerEntity extends WorldAliveEntity {
                 long serverTime = Long.parseLong(split[1]);
                 // TODO test
                 if (serverTime == 0) {
-                    serverTime = System.currentTimeMillis();
+                    serverTime = System.currentTimeMillis() - 2000;
                 }
                 int skillType = Integer.parseInt(split[2]);
                 SkillDesc skill = SkillDesc.find(desc.skills, skillType);
                 int requiredEnergy = SkillDesc.typeOf(skill.type) == SkillDesc.SkillType.CONTINUOUS
                         ? skill.energyPrice / 2 : skill.energyPrice;
-                if (requiredEnergy > energy) {
+                if (requiredEnergy > getState().getEnergy()) {
                     break;
                 }
 
@@ -100,7 +100,7 @@ public class PlayerEntity extends WorldAliveEntity {
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
         super.proceed(time, objectsToAdd);
 
-        if (energy == 0) {
+        if (getState().getEnergy() == 0) {
             // Detach all passive skills
             mSkillInfluences.entrySet().removeIf(entry -> {
                 SkillDesc skill = desc.getSkill(entry.getKey());

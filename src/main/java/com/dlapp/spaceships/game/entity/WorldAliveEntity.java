@@ -12,22 +12,26 @@ public class WorldAliveEntity extends WorldEntity {
 
     protected final AliveEntityDesc desc;
 
-    protected float health;
-    protected float energy;
-
     public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc, int x, int y, int angle) {
         super(world, id, desc.type, desc.size, x, y, angle);
         this.desc = desc;
-        this.health = desc.health;
-        this.energy = desc.energy;
         initConstantPassiveSkills();
+        getState().health = desc.health;
+        getState().energy = desc.energy;
     }
 
     @Override
-    public WorldEntity copy() {
-        WorldAliveEntity result = new WorldAliveEntity(gameWorld, getId(), desc, getX(), getY(), getAngle());
-        result.health = health;
-        result.energy = energy;
+    public State getState() {
+        return (State) super.getState();
+    }
+
+    @Override
+    protected EntityState createEntityState(long time, int size, int x, int y, int angle) {
+        State result = new State(super.createEntityState(time, size, x, y, angle));
+        if (getState() != null) {
+            result.health = getState().health;
+            result.energy = getState().energy;
+        }
         return result;
     }
 
@@ -51,10 +55,10 @@ public class WorldAliveEntity extends WorldEntity {
         shot.setDestroyTime(time + 5000);
 
         // As player provides timestamp when shot was generated - need to check if any collisions
-        // occurred between client time and current server time
+        // occurred in "past" between client time and current server time
         shot.update(System.currentTimeMillis(), angle);
-        int newX = shot.getX();
-        int newY = shot.getY();
+        int newX = shot.getState().getX();
+        int newY = shot.getState().getY();
         // TODO
 
         gameWorld.addEntity(shot);
@@ -66,25 +70,25 @@ public class WorldAliveEntity extends WorldEntity {
     protected boolean applyInfluence(EntityInfluence influence, long time) {
         switch (influence.type) {
             case GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION:
-                this.energy = Math.max(0, this.energy - influence.values[0]);
+                this.getState().energy = Math.max(0, this.getState().energy - influence.values[0]);
                 return true;
 
             case GameConstants.INFLUENCE_SINGLE_DAMAGE:
                 int appliedValue = influence.values[0];
-                this.health = Math.max(0, this.health - appliedValue);
+                this.getState().health = Math.max(0, this.getState().health - appliedValue);
                 gameWorld.onEntityApplyInfluence(this, influence, appliedValue);
-                if (health == 0) {
+                if (getState().health == 0) {
                     destroy();
                 }
                 return true;
 
             case GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION:
-            case INFLUENCE_CONTINUOUS_ENERGY_RECOVER:
+            case GameConstants.INFLUENCE_CONTINUOUS_ENERGY_RECOVER:
                 float consumption = ((time - influence.getApplyTime()) / 1000.0f) * influence.values[0];
                 int k = influence.type == GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION ? -1 : 1;
-                energy = energy + consumption * k;
-                if (energy < 0) energy = 0;
-                if (energy > desc.energy) energy = desc.energy;
+                getState().setEnergy(getState().energy + consumption * k);
+                if (getState().energy < 0) getState().setEnergy(0);
+                if (getState().energy > desc.energy) getState().setEnergy(desc.energy);
                 influence.setApplyTime(time);
                 return false;
         }
@@ -98,17 +102,43 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     @Override
-    public String getStateString() {
-        return super.getStateString() +
-                Math.round(health) + "," +
-                Math.round(energy) + ",";
-    }
-
-    @Override
     public ObjectNode toJson() {
         ObjectNode result = super.toJson();
-        result.put("heath", health);
-        result.put("energy", energy);
+        result.put("heath", getState().health);
+        result.put("energy", getState().energy);
         return result;
+    }
+
+    static class State extends EntityState {
+
+        private float health;
+        private float energy;
+
+        public State(EntityState originalState) {
+            super(originalState.createTime, originalState.getSize(), originalState.getX(), originalState.getY(), originalState.getAngle());
+        }
+
+        public float getHealth() {
+            return health;
+        }
+
+        public float getEnergy() {
+            return energy;
+        }
+
+        void setHealth(float health) {
+            this.health = health;
+        }
+
+        void setEnergy(float energy) {
+            this.energy = energy;
+        }
+
+        @Override
+        public String toStateString() {
+            return super.toStateString() + "," +
+                    (int) health + "," +
+                    (int) energy;
+        }
     }
 }
