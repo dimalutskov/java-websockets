@@ -224,6 +224,10 @@ public class GameRoom implements GameWorld {
         WorldEntity staticObject = new WorldAliveEntity(this, "test_static", AliveEntityDesc.SPACESHIP_DESC, 230, 230, 0);
         collisionsHandler.registerEntity(staticObject);
         entities.add(staticObject);
+
+        WorldEntity staticObject2 = new WorldAliveEntity(this, "test_static2", AliveEntityDesc.SPACESHIP_DESC, -100, 230, 0);
+        collisionsHandler.registerEntity(staticObject2);
+        entities.add(staticObject2);
     }
 
 //    private void updateTestObjects(long time) {
