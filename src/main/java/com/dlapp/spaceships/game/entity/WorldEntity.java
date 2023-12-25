@@ -4,7 +4,6 @@ import com.dlapp.spaceships.game.GameWorld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -28,13 +27,15 @@ public class WorldEntity {
 
     private final WorldEntityMovement movement = new WorldEntityMovement();
 
-    private final Rectangle2D.Double rect = new Rectangle2D.Double();
-
     public WorldEntity(GameWorld world, String id, int type, int size, int x, int y, int angle) {
+        this(world, System.currentTimeMillis(), id, type, size, x, y, angle);
+    }
+
+    public WorldEntity(GameWorld world, long time, String id, int type, int size, int x, int y, int angle) {
         this.gameWorld = world;
         this.id = id;
         this.type = type;
-        states.push(createEntityState(System.currentTimeMillis(), size, x, y, angle));
+        states.push(createEntityState(time, size, x, y, angle));
         movement.update(x, y);
         movement.setAngle(angle);
     }
@@ -55,13 +56,18 @@ public class WorldEntity {
         return states.isEmpty() ? null : states.peek();
     }
 
-    public Rectangle2D.Double getRect() {
-        float halfSize = getState().getSize() / 2.0f;
-        rect.x = getState().getX() - halfSize;
-        rect.y = getState().getY() - halfSize;
-        rect.width = getState().getSize();
-        rect.height = getState().getSize();
-        return rect;
+    public EntityState findState(long time) {
+        long timeDiff = Long.MAX_VALUE;
+        EntityState nearestState = null;
+        for (EntityState state : states) {
+            long diff = Math.abs(state.createTime - time);
+            if (diff > timeDiff) {
+                return nearestState;
+            }
+            nearestState = state;
+            timeDiff = diff;
+        }
+        return getState();
     }
 
     public boolean isDestroyed() {
@@ -111,10 +117,7 @@ public class WorldEntity {
     public void proceed(long time, List<WorldEntity> objectsToAdd) {
         movement.step(time);
 
-        states.push(createEntityState(time, getState().getSize(),
-                (int) movement.getCurX(),
-                (int) movement.getCurY(),
-                (int) movement.getAngle()));
+        addNewState(time);
         if (time - states.get(states.size() - 1).createTime > KEEP_STATES_TIME) {
             states.remove(states.size() - 1);
         }
@@ -126,13 +129,20 @@ public class WorldEntity {
         }
     }
 
+    protected void addNewState(long time) {
+        states.push(createEntityState(time, getState().getSize(),
+                (int) movement.getCurX(),
+                (int) movement.getCurY(),
+                (int) movement.getAngle()));
+    }
+
     protected boolean applyInfluence(EntityInfluence influence, long time) {
         return true;
     }
 
     public void onCollision(WorldEntity entity) {
-        System.out.println("@@@ onCollision " + getId() + " " + getRect()
-                +  " || " + entity.getId() + " " + entity.getRect());
+        System.out.println("@@@ onCollision " + getId() + " " + getState().getRect()
+                +  " || " + entity.getId() + " " + entity.getState().getRect());
     }
 
     public void onCollisionEnd(WorldEntity entity) {

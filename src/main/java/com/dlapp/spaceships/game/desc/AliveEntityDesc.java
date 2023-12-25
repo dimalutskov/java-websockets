@@ -10,7 +10,7 @@ public class AliveEntityDesc {
     public static final AliveEntityDesc SPACESHIP_DESC;
 
     static {
-        SPACESHIP_DESC = new AliveEntityDesc(GameConstants.ENTITY_TYPE_SPACESHIP, 100, 100, 100,
+        SPACESHIP_DESC = new AliveEntityDesc(GameConstants.ENTITY_TYPE_SPACESHIP, 100, 1000, 100,
                 Arrays.asList(SkillDesc.SKILL_ENERGY_RECOVER, SkillDesc.SKILL_SHOT, SkillDesc.SKILL_ACCELERATION));
     }
 
