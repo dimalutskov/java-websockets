@@ -200,19 +200,103 @@ class GameWorld {
 
 }
 
+class EditEntityContainer {
+    constructor(container) {
+        this.container = document.getElementById("entityEditContainer");
+
+        // Inputs
+        this.inputSize = document.getElementById("editSize");
+        this.inputX = document.getElementById("editX");
+        this.inputY = document.getElementById("editY");
+        this.inputAngle = document.getElementById("editAngle");
+        this.inputHealth = document.getElementById("editHealth");
+        this.inputEnergy = document.getElementById("editEnergy");
+
+        const inputHandler = e => {
+            this.update();
+        }
+        this.inputSize.addEventListener('input', inputHandler);
+        this.inputX.addEventListener('input', inputHandler);
+        this.inputY.addEventListener('input', inputHandler);
+        this.inputAngle.addEventListener('input', inputHandler);
+        this.inputHealth.addEventListener('input', inputHandler);
+        this.inputEnergy.addEventListener('input', inputHandler);
+
+        // Buttons
+        this.buttonSave = document.getElementById("buttonEditSave");
+        this.buttonAdd = document.getElementById("buttonAdd");
+
+        this.selectedEntity = null;
+
+        this.hide();
+    }
+
+    isHidden() {
+        return this.container.style.display === 'none'
+    }
+
+    show(selectedEntity) {
+        this.container.hidden = false;
+        this.container.style.display = '';
+        this.selectedEntity = selectedEntity;
+        this.update();
+        this.buttonAdd.innerHTML = "Cancel"
+    }
+
+    hide() {
+        this.container.style.display = 'none';
+        this.selectedEntity = null;
+        this.buttonAdd.innerHTML = "Add Entity"
+    }
+
+    update() {
+        var editMode = this.selectedEntity != null;
+        document.getElementById("buttonEditDestroy").style.display = editMode ? '' : 'hidden';
+        document.getElementById("entityEditSkills").style.display = editMode ? '' : 'none';
+        document.getElementById("entityEditTypeSelector").disabled = editMode;
+        this.buttonSave.disabled = !this.isInputValid();
+    }
+
+    isInputValid() {
+        return this.inputSize.value.length > 0 && this.inputX.value.length > 0 &&
+            this.inputY.value.length > 0 && this.inputAngle.value.length > 0 &&
+            this.inputHealth.value.length > 0 && this.inputEnergy.value.length > 0
+    }
+}
+
 class WebSocketManager {
 	
-	constructor(gameWorld, url, callback) {
+	constructor(gameWorld, url, connectionCallback) {
 		this.gameWorld = gameWorld;
+		this.url = url;
+		this.connectionCallback = connectionCallback;
+		this.isConnected = false;
 		
 		gameWorld.callbackViewDragged = obj => {
 			this.sendMovementUpdate(obj.x, obj.y);
 		};
-		
-		this.webSocket = new WebSocket(url);
-		this.webSocket.onmessage = event => {
-			this.handleMessage(event);
-		};
+	}
+
+	connect() {
+	    this.webSocket = new WebSocket(this.url);
+        this.webSocket.onopen = event => {
+            this.isConnected = true;
+            this.connectionCallback(true);
+        };
+        this.webSocket.onerror = event => {
+           this.connectionCallback(false);
+        };
+        this.webSocket.onclose = event => {
+            this.isConnected = false;
+            this.connectionCallback(false);
+        };
+        this.webSocket.onmessage = event => {
+        	this.handleMessage(event);
+        };
+	}
+
+	disconnect() {
+	    this.webSocket.close();
 	}
 	
 	sendMessage(msg) {
@@ -262,7 +346,19 @@ class WebSocketManager {
 //wss://dl-websockets-25f48806cc22.herokuapp.com/websocket
 
 var gameWorld = new GameWorld(document.getElementById("canvas"));
-var webSocketManager = new WebSocketManager(gameWorld, "ws://localhost:8080/websocket");
+var editEntityContainer = new EditEntityContainer();
+var webSocketManager = new WebSocketManager(gameWorld, "ws://localhost:8080/websocket", connected => {
+    var connectButton = document.getElementById("buttonConnect");
+    if (connected == true) {
+        connectButton.disabled = false;
+        connectButton.innerHTML = "Disconnect"
+        document.getElementById("buttonAdd").disabled = false;
+    } else {
+        document.getElementById("buttonConnect").disabled = false;
+        document.getElementById("buttonConnect").innerHTML = "Connect";
+        document.getElementById("buttonAdd").disabled = true;
+    }
+});
 
 window.addEventListener('resize', () => {
     gameWorld.updateSize(document.documentElement.clientWidth, document.documentElement.clientHeight);
@@ -270,3 +366,34 @@ window.addEventListener('resize', () => {
 })
 gameWorld.updateSize(document.documentElement.clientWidth, document.documentElement.clientHeight);
 gameWorld.draw();
+
+function clickConnect() {
+    if (webSocketManager.isConnected == true) {
+        webSocketManager.disconnect();
+        editEntityContainer.hide();
+    } else {
+        webSocketManager.connect();
+        document.getElementById("buttonConnect").disabled = true;
+    }
+}
+
+function clickAddEntity() {
+    if (editEntityContainer.isHidden()) {
+        editEntityContainer.show(true);
+    } else {
+        editEntityContainer.hide();
+    }
+}
+
+function clickEditSave() {
+    editEntityContainer.hide();
+}
+
+function clickEditCancel() {
+    editEntityContainer.hide(); // TODO deselect object
+    document.getElementById("buttonAdd").innerHTML = "Add Entity"
+}
+
+function clickEditDestroy() {
+    editEntityContainer.hide();
+}
