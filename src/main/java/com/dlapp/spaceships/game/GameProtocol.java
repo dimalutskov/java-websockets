@@ -12,11 +12,16 @@ public class GameProtocol {
     /////////////////// SERVER_MESSAGES //////////////////////
 
     /**
-     * Provides server information and objectId for this connected client to retrieve current player state from server state message
-     * {MSG_TYPE};{SERVER_INFO};{OBJECT_ID};{PLAYER_INFO}
+     * Provides server information and
+     * {MSG_TYPE};{SERVER_INFO};
      * SERVER_INFO: "{SERVER_TIME},{UPDATE_INTERVAL}"
      */
     public static final String SERVER_MSG_RESPONSE_CONNECTED = "connected";
+
+    /**
+     * Provides objectId for this joined client to retrieve current player state from server state message
+     */
+    public static final String SERVER_MSG_RESPONSE_JOIN= "join";
 
     /**
      * Provides current game state with all required game objects, etc.
@@ -61,6 +66,11 @@ public class GameProtocol {
 
 
     /////////////////// CLIENT_MESSAGES ///////////////////////////
+
+    /**
+     * Join client as a world entity. Entity's id will be provided in response message
+     */
+    public static final String CLIENT_MSG_JOIN = "join";
 
     /**
      * Provides player movement attributes

@@ -17,7 +17,7 @@ public class GameRoom implements GameWorld {
 
     private final WorldCollisionsHandler collisionsHandler = new WorldCollisionsHandler();
     private final List<WorldEntity> entities = new ArrayList(100); // TODO
-    private final List<PlayerEntity> players = new ArrayList();
+    private final List<GamePlayer> players = new ArrayList();
 
     private Timer gameProcessingTimer;
 
@@ -74,30 +74,25 @@ public class GameRoom implements GameWorld {
         broadcast(msg);
     }
 
-    public synchronized void connectPlayer(PlayerEntity player) {
+    public synchronized void connectPlayer(GamePlayer player) {
         players.add(player);
-
-        addEntity(player);
 
         if (players.size() == 1) {
             startWorld();
         }
         // Response to client
         String serverInfo = System.currentTimeMillis() + "," + STATE_BROADCAST_INTERVAL;
-        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";" + player.getId() + ";");
-        // Send last state???
-        onObjectAdded(player, System.currentTimeMillis());
+        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";");
     }
 
-    public synchronized void disconnectPlayer(PlayerEntity player) {
-        // TODO destroy, collisions
+    public synchronized void disconnectPlayer(GamePlayer player) {
         players.remove(player);
-        player.destroy();
         if (players.size() == 0) {
             stopWorld();
         }
-        // Disconnect message
-        onObjectDestroyed(player, System.currentTimeMillis());
+        if (player.getEntity() != null) {
+            player.getEntity().destroy();
+        }
     }
 
     private void startWorld() {
@@ -120,19 +115,20 @@ public class GameRoom implements GameWorld {
         if (gameProcessingTimer != null) gameProcessingTimer.cancel();
     }
 
-    public synchronized void onClientMessage(PlayerEntity player, String message) {
+    public synchronized void onClientMessage(GamePlayer player, String message) {
         System.out.println("@@@ handleMessage: " + message);
         try {
             String[] split = message.split(";");
-            List<WorldEntity> objectsToAdd = new ArrayList<>();
-            player.onMessage(split, objectsToAdd);
-//            gameObjects.addAll(objectsToAdd);
+            List<WorldEntity> addedObjects = new ArrayList<>();
+            player.onMessage(split, addedObjects);
 
-            if (!objectsToAdd.isEmpty() && split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON)) {
+            if (split[0].equals(GameProtocol.CLIENT_MSG_JOIN)) {
+                player.send(GameProtocol.SERVER_MSG_RESPONSE_JOIN + ";" + player.getEntity().getId());
+            } else if (split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON) && !addedObjects.isEmpty()) {
                 // Response client with new objects ids
                 StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")
                         .append(split[1]).append(";"); // skillId
-                for (WorldEntity object : objectsToAdd) {
+                for (WorldEntity object : addedObjects) {
                     responseMsg.append(object.getId()).append(";");
                 }
                 player.send(responseMsg.toString());
@@ -184,7 +180,7 @@ public class GameRoom implements GameWorld {
     }
 
     private synchronized void broadcast(String message) {
-        for (PlayerEntity player : players) {
+        for (GamePlayer player : players) {
             player.send(message);
         }
     }

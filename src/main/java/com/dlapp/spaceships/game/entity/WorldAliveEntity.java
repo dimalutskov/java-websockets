@@ -46,7 +46,7 @@ public class WorldAliveEntity extends WorldEntity {
         }
     }
 
-    WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
+    public WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
         attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, shotCreatedTime, skill.type, getId(), skill.energyPrice));
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
@@ -107,7 +107,7 @@ public class WorldAliveEntity extends WorldEntity {
         return result;
     }
 
-    static class State extends EntityState {
+    public static class State extends EntityState {
 
         private float health;
         private float energy;
@@ -129,6 +129,11 @@ public class WorldAliveEntity extends WorldEntity {
         }
 
         void setEnergy(float energy) {
+            this.energy = energy;
+        }
+
+        public void update(int health, int energy) {
+            this.health = health;
             this.energy = energy;
         }
 

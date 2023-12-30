@@ -11,7 +11,9 @@ class WorldObject {
 		this.size = parseInt(split[2]);
 		this.x = parseInt(split[3]);
 		this.y = parseInt(split[4]);
-		this.angle = parseInt(split[5]);	
+		this.angle = parseInt(split[5]);
+		this.health = parseInt(split[6]);
+		this.energy = parseInt(split[7]);
 	}
 	
 	updateLocation(x, y) {
@@ -25,7 +27,7 @@ class GameWorld {
 	
 	constructor(canvas) {
 		this.worldObjects = new Map();
-		
+
 		this.canvas = canvas;
 		this.canvasContext = canvas.getContext("2d");
 		this.canvasSize = { x: 600, y: 600 };
@@ -40,6 +42,7 @@ class GameWorld {
 		this.initHandlers();
 		
 		this.callbackViewDragged;
+		this.callbackViewSelected;
 	}
 
 	updateSize(width, height) {
@@ -180,7 +183,11 @@ class GameWorld {
 	
 	handleMouseUp() {
 		this.isDraggable = false;
+		var selectedEntity = null;
 		for (var obj of this.worldObjects.values()) {
+		    if (obj.active == true) {
+		        selectedEntity = obj;
+		    }
 			if (obj.dragging == true) {
 				if (typeof this.callbackViewDragged !== 'undefined') {
 					this.callbackViewDragged(obj);
@@ -188,6 +195,9 @@ class GameWorld {
 			}
 			obj.dragging = false;
 		}
+		if (typeof this.callbackViewSelected !== 'undefined') {
+            this.callbackViewSelected(selectedEntity);
+        }
 	}
 	
 	handleMouseWheel(event) {
@@ -201,7 +211,9 @@ class GameWorld {
 }
 
 class EditEntityContainer {
-    constructor(container) {
+
+    constructor(gameWorld, container) {
+        this.gameWorld = gameWorld;
         this.container = document.getElementById("entityEditContainer");
 
         // Inputs
@@ -226,9 +238,13 @@ class EditEntityContainer {
         this.buttonSave = document.getElementById("buttonEditSave");
         this.buttonAdd = document.getElementById("buttonAdd");
 
-        this.selectedEntity = null;
+        this.selectedEntity = null; // TODO Subscribe destroyed
 
         this.hide();
+
+        this.gameWorld.callbackViewSelected = entity => {
+            this.setSelectedEntity(entity);
+        }
     }
 
     isHidden() {
@@ -255,12 +271,34 @@ class EditEntityContainer {
         document.getElementById("entityEditSkills").style.display = editMode ? '' : 'none';
         document.getElementById("entityEditTypeSelector").disabled = editMode;
         this.buttonSave.disabled = !this.isInputValid();
+        if (this.selectedEntity != null) {
+            this.setInput(this.inputSize, this.selectedEntity.size);
+            this.setInput(this.inputX, this.selectedEntity.x);
+            this.setInput(this.inputY, this.selectedEntity.y);
+            this.setInput(this.inputAngle, this.selectedEntity.angle);
+            this.setInput(this.inputHealth, this.selectedEntity.health);
+            this.setInput(this.inputEnergy, this.selectedEntity.energy);
+        }
+    }
+
+    setInput(inputElement, value) {
+        if (document.activeElement != inputElement) inputElement.value = value;
     }
 
     isInputValid() {
         return this.inputSize.value.length > 0 && this.inputX.value.length > 0 &&
             this.inputY.value.length > 0 && this.inputAngle.value.length > 0 &&
             this.inputHealth.value.length > 0 && this.inputEnergy.value.length > 0
+    }
+
+    setSelectedEntity(entity) {
+        if (entity == null) {
+            if (this.selectedEntity != null) this.hide();
+        } else {
+            if (this.selectedEntity == null || this.selectedEntity.id != entity.id) {
+                this.show(entity);
+            }
+        }
     }
 }
 
@@ -273,7 +311,17 @@ class WebSocketManager {
 		this.isConnected = false;
 		
 		gameWorld.callbackViewDragged = obj => {
-			this.sendMovementUpdate(obj.x, obj.y);
+			fetch("http://localhost:8080/entity/" + obj.id, {
+                  method: "POST",
+                  body: JSON.stringify({
+                    x: obj.x,
+                    y: obj.y,
+                    angle: obj.angle
+                  }),
+                  headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                  }
+                });
 		};
 	}
 
@@ -304,10 +352,6 @@ class WebSocketManager {
 		this.webSocket.send(msg);
 	}
 
-	sendMovementUpdate(x, y) {
-		this.sendMessage("move;0;" + Math.round(x) + ";" + Math.round(y) + ";0;0");
-	}
-	
 	handleMessage(event) {
 		console.log("RECEIVE: " + event.data);
 		const split = event.data.split(";");
@@ -323,19 +367,21 @@ class WebSocketManager {
 		var newObjects = new Map();
 		for (let i = 2; i < split.length; i ++) {
 			var object = new WorldObject(split[i]);
-			newObjects.set(object.id, object);
 			var oldObject = this.gameWorld.worldObjects.get(object.id);
 			if (typeof oldObject !== 'undefined') {
-				object.active = oldObject.active;
-				object.focused = oldObject.focused;
-				object.dragging = oldObject.dragging;
-				if (oldObject.dragging) {
-					// Keep dragging location
-					object.x = oldObject.x;
-					object.y = oldObject.y;
-					object.angle = oldObject.angle;
-				}
-			} 
+			    if (oldObject.dragging == false) {
+			        oldObject.x = object.x;
+                    oldObject.y = object.y;
+                }
+                oldObject.angle = object.angle;
+                oldObject.size = object.size;
+                oldObject.health = object.health;
+                oldObject.energy = object.energy;
+
+                newObjects.set(object.id, oldObject);
+			} else {
+			    newObjects.set(object.id, object);
+			}
 		}
 		this.gameWorld.worldObjects = newObjects;
 		this.gameWorld.draw();
@@ -346,7 +392,7 @@ class WebSocketManager {
 //wss://dl-websockets-25f48806cc22.herokuapp.com/websocket
 
 var gameWorld = new GameWorld(document.getElementById("canvas"));
-var editEntityContainer = new EditEntityContainer();
+var editEntityContainer = new EditEntityContainer(gameWorld);
 var webSocketManager = new WebSocketManager(gameWorld, "ws://localhost:8080/websocket", connected => {
     var connectButton = document.getElementById("buttonConnect");
     if (connected == true) {
@@ -379,13 +425,31 @@ function clickConnect() {
 
 function clickAddEntity() {
     if (editEntityContainer.isHidden()) {
-        editEntityContainer.show(true);
+        editEntityContainer.show();
     } else {
         editEntityContainer.hide();
     }
 }
 
 function clickEditSave() {
+    var url = "http://localhost:8080/entity";
+    if (editEntityContainer.selectedEntity != null) {
+        url += "/" + editEntityContainer.selectedEntity.id
+    }
+    fetch(url, {
+        method: "POST",
+        body: JSON.stringify({
+          size: Number(editEntityContainer.inputSize.value),
+          x: Number(editEntityContainer.inputX.value),
+          y: Number(editEntityContainer.inputY.value),
+          angle: Number(editEntityContainer.inputAngle.value),
+          health: Number(editEntityContainer.inputHealth.value),
+          energy: Number(editEntityContainer.inputEnergy.value)
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+    });
     editEntityContainer.hide();
 }
 
@@ -395,5 +459,14 @@ function clickEditCancel() {
 }
 
 function clickEditDestroy() {
-    editEntityContainer.hide();
+    if (editEntityContainer.selectedEntity != null) {
+        fetch("http://localhost:8080/entity/" + editEntityContainer.selectedEntity.id, {
+              method: "DELETE",
+              body: "",
+              headers: {
+                "Content-type": "application/json; charset=UTF-8"
+              }
+            });
+    }
+
 }
