@@ -49,12 +49,6 @@ public class SingleShotEntity extends WorldEntity {
     public void onCollision(WorldEntity entity) {
         super.onCollision(entity);
 
-        if (!MathUtils.intersects(entity.getState().getRect(), this.getState().getRect())) {
-            // If current rects are not intersected - collision occurred in the past, so as shot had to be destroyed
-            // move it to the collided object center
-            update(System.currentTimeMillis(), entity.getState().getX(), entity.getState().getY(), entity.getState().getAngle(), 0);
-        }
-
         entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
         destroy();
     }

@@ -8,6 +8,11 @@ import com.dlapp.spaceships.game.entity.WorldEntity;
 import java.util.*;
 
 public class WorldCollisionsHandler {
+
+    public interface CollisionCallback {
+        void onCollision(WorldEntity entity1, WorldEntity entity2, long time);
+    }
+
     private final List<WorldEntity> entities = new ArrayList<>();
 
     // Key - objectId, value - list of collided objects
@@ -41,7 +46,7 @@ public class WorldCollisionsHandler {
                     break;
                 }
 
-                checkCollision(obj1Handler, obj2Handler, 0);
+                checkCollision(obj1Handler, obj2Handler);
             }
         }
         // Detach destroyed objects
@@ -51,21 +56,26 @@ public class WorldCollisionsHandler {
         }
     }
 
-    void checkCollisions(WorldEntity entity, long serverTime) {
+    boolean checkCollisions(WorldEntity entity, long serverTime, CollisionCallback callback) {
         System.out.println("@@@ CHECK " + serverTime);
+        boolean result = false;
         for (WorldEntity otherEntity : entities) {
             if (entity != otherEntity) {
-                checkCollision(entity, otherEntity, serverTime);
+                if (canBeCollided(entity, otherEntity) && hasCollision(entity, otherEntity, serverTime)) {
+                    callback.onCollision(entity, otherEntity, serverTime);
+                    result = true;
+                }
             }
         }
+        return result;
     }
 
-    void checkCollision(WorldEntity entity, WorldEntity otherEntity, long time) {
+    void checkCollision(WorldEntity entity, WorldEntity otherEntity) {
         if (canBeCollided(entity, otherEntity)) {
             // Obj1 collisions
             Set<WorldEntity> obj1Collisions = collisions.computeIfAbsent(entity.getId(), k -> new HashSet<>());
 
-            if (hasCollision(entity, otherEntity, time)) {
+            if (hasCollision(entity, otherEntity, 0)) {
                 entity.onCollision(otherEntity);
                 obj1Collisions.add(otherEntity);
             } else {

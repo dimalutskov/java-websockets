@@ -48,8 +48,8 @@ public class GameRoom implements GameWorld {
     }
 
     @Override
-    public void checkPastCollisions(WorldEntity entity, long time) {
-        collisionsHandler.checkCollisions(entity, time);
+    public boolean checkPastCollisions(WorldEntity entity, long time, WorldCollisionsHandler.CollisionCallback callback) {
+        return collisionsHandler.checkCollisions(entity, time, callback);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class GameRoom implements GameWorld {
             object.proceed(time);
             if (object.isDestroyed()) {
                 objectsIt.remove();
-                onObjectDestroyed(object, time);
+                onObjectDestroyed(object, object.getDestroyTime());
             }
         }
     }

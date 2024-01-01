@@ -76,6 +76,13 @@ public class WorldEntity {
 
     public void destroy() {
         isDestroyed = true;
+        if (destroyTime == 0) {
+            destroyTime = System.currentTimeMillis();
+        }
+    }
+
+    public long getDestroyTime() {
+        return destroyTime;
     }
 
     public void setDestroyTime(long destroyTime) {
