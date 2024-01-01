@@ -123,7 +123,9 @@ public class GameRoom implements GameWorld {
             player.onMessage(split, addedObjects);
 
             if (split[0].equals(GameProtocol.CLIENT_MSG_JOIN)) {
-                player.send(GameProtocol.SERVER_MSG_RESPONSE_JOIN + ";" + player.getEntity().getId());
+                player.send(GameProtocol.SERVER_MSG_RESPONSE_JOIN + ";" +
+                        System.currentTimeMillis() + ";" +
+                        player.getEntity().getStateString());
             } else if (split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON) && !addedObjects.isEmpty()) {
                 // Response client with new objects ids
                 StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")

@@ -20,6 +20,7 @@ public class GameProtocol {
 
     /**
      * Provides objectId for this joined client to retrieve current player state from server state message
+     * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE}
      */
     public static final String SERVER_MSG_RESPONSE_JOIN= "join";
 
@@ -69,6 +70,7 @@ public class GameProtocol {
 
     /**
      * Join client as a world entity. Entity's id will be provided in response message
+     * {MSG_TYPE};
      */
     public static final String CLIENT_MSG_JOIN = "join";
 
