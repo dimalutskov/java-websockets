@@ -37,15 +37,13 @@ public class SingleShotEntity extends WorldEntity {
         // As player provides timestamp when shot was generated - need to check if any collisions
         // occurred in "past" between client time and current server time
         WorldCollisionsHandler.CollisionCallback pastCollisionCallback = (entity1, entity2, time) -> {
-            update(time, entity2.getState().getX(), entity2.getState().getY(), entity2.getState().getAngle(), 0);
+            update(time, entity2.getState().getX(), entity2.getState().getY(), angle, 0);
             setDestroyTime(time);
         };
         int checkPastCollisionsCount = 3; // TODO
         long timeStep = (currentTime - createTime) / (checkPastCollisionsCount + 1);
-        boolean hadCollisions = false;
         for (int i = 0; i < checkPastCollisionsCount; i++) {
             if (gameWorld.checkPastCollisions(this, createTime + timeStep * i, pastCollisionCallback)) {
-                hadCollisions = true;
                 break;
             }
         }
