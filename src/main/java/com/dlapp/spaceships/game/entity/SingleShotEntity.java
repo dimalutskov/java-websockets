@@ -1,8 +1,8 @@
 package com.dlapp.spaceships.game.entity;
 
-import com.dlapp.spaceships.MathUtils;
 import com.dlapp.spaceships.game.GameConstants;
 import com.dlapp.spaceships.game.GameWorld;
+import com.dlapp.spaceships.game.WorldCollisionsHandler;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 
 public class SingleShotEntity extends WorldEntity {
@@ -27,12 +27,28 @@ public class SingleShotEntity extends WorldEntity {
 
         int speed = skillDesc.values[2]; // TODO
         update(createTime, x, y, angle, speed);
-        setDestroyTime(createTime + 5000);
 
-        // Add actual state
+        // As player provides timestamp when shot was generated - need to check if any collisions
+        // occurred in "past" between client time and current server time
+        WorldCollisionsHandler.CollisionCallback pastCollisionCallback = (entity1, entity2, time) -> {
+            update(time, entity2.getState().getX(), entity2.getState().getY(), entity2.getState().getAngle(), 0);
+            setDestroyTime(time);
+        };
         long currentTime = System.currentTimeMillis();
-        update(currentTime, angle);
-        addNewState(currentTime);
+        int checkPastCollisionsCount = 3; // TODO
+        long timeStep = (currentTime - createTime) / (checkPastCollisionsCount + 1);
+        boolean hadCollisions = false;
+        for (int i = 0; i < checkPastCollisionsCount; i++) {
+            if (gameWorld.checkPastCollisions(this, createTime + timeStep * i, pastCollisionCallback)) {
+                hadCollisions = true;
+                break;
+            }
+        }
+        if (!hadCollisions) {
+            update(currentTime, angle);
+            addNewState(currentTime);
+            setDestroyTime(createTime + 5000); // TODO
+        }
     }
 
     @Override

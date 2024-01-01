@@ -51,23 +51,6 @@ public class WorldAliveEntity extends WorldEntity {
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
         gameWorld.addEntity(shot, shotCreatedTime);
-
-        WorldCollisionsHandler.CollisionCallback pastCollisionCallback = (entity1, entity2, time) -> {
-            shot.update(time, entity2.getState().getX(), entity2.getState().getY(), entity2.getState().getAngle(), 0);
-            shot.setDestroyTime(time);
-        };
-
-        // As player provides timestamp when shot was generated - need to check if any collisions
-        // occurred in "past" between client time and current server time
-        long currentTime = System.currentTimeMillis();
-        int checkPastCollisionsCount = 3; // TODO
-        long timeStep = (currentTime - shotCreatedTime) / (checkPastCollisionsCount + 1);
-        for (int i = 0; i < checkPastCollisionsCount; i++) {
-            if (gameWorld.checkPastCollisions(shot, shotCreatedTime + timeStep * i, pastCollisionCallback)) {
-                break;
-            }
-        }
-
         return shot;
     }
 
