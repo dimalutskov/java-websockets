@@ -12,6 +12,7 @@ public class GameConstants {
 
     public static final int SKILL_TYPE_SHOT = 1;
     public static final int SKILL_TYPE_ACCELERATION = 2;
+    public static final int SKILL_TYPE_SHIELD = 3;
 
     //////////////// INFLUENCES //////////////
     // values: energy
@@ -23,6 +24,8 @@ public class GameConstants {
     public static final int INFLUENCE_CONTINUOUS_ENERGY_RECOVER = 101;
     // values: energy
     public static final int INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION = 102;
+    // value: damage protection
+    public static final int INFLUENCE_CONTINUOUS_SHIELD = 103;
 
 
 }

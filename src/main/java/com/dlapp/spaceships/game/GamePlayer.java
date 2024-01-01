@@ -88,15 +88,27 @@ public class GamePlayer {
                     break;
                 }
 
-                if (skillType == GameConstants.SKILL_TYPE_SHOT) {
-                    int x = Integer.parseInt(split[3]);
-                    int y = Integer.parseInt(split[4]);
-                    int angle = Integer.parseInt(split[5]);
-                    addedObjects.add(entity.handleShotSkill(serverTime, skill, x, y, angle));
-                } else if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
-                    EntityInfluence energyConsumption = new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice);
-                    mSkillInfluences.put(skillType, Collections.singletonList(energyConsumption));
-                    entity.attachInfluence(energyConsumption);
+                if (SkillDesc.typeOf(skillType) == SkillDesc.SkillType.CONTINUOUS) {
+                    List<EntityInfluence> influences = new ArrayList<>();
+                    // Energy consumption
+                    influences.add(new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
+                    if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
+
+                    } else if (skillType == GameConstants.SKILL_TYPE_SHIELD) {
+                        influences.add(new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_SHIELD, time, skillType, entity.getId(), skill.values[0]));
+                    }
+                    mSkillInfluences.put(skillType, influences);
+                    for (EntityInfluence influence : influences) entity.attachInfluence(influence);
+                } else {
+                    // Consume energy
+                    entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
+
+                    if (skillType == GameConstants.SKILL_TYPE_SHOT) {
+                        int x = Integer.parseInt(split[3]);
+                        int y = Integer.parseInt(split[4]);
+                        int angle = Integer.parseInt(split[5]);
+                        addedObjects.add(entity.handleShotSkill(serverTime, skill, x, y, angle));
+                    }
                 }
                 break;
             }

@@ -309,20 +309,6 @@ class WebSocketManager {
 		this.url = url;
 		this.connectionCallback = connectionCallback;
 		this.isConnected = false;
-		
-		gameWorld.callbackViewDragged = obj => {
-			fetch("http://localhost:8080/entity/" + obj.id, {
-                  method: "POST",
-                  body: JSON.stringify({
-                    x: obj.x,
-                    y: obj.y,
-                    angle: obj.angle
-                  }),
-                  headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                  }
-                });
-		};
 	}
 
 	connect() {
@@ -389,11 +375,17 @@ class WebSocketManager {
 	
 }
 
-//wss://dl-websockets-25f48806cc22.herokuapp.com/websocket
+//
+
+//var webSocketUrl = "ws://localhost:8080/websocket";
+//var serverUrl = "http://localhost:8080";
+
+var webSocketUrl = "wss://dl-websockets-25f48806cc22.herokuapp.com/websocket";
+var serverUrl = "https://dl-websockets-25f48806cc22.herokuapp.com";
 
 var gameWorld = new GameWorld(document.getElementById("canvas"));
 var editEntityContainer = new EditEntityContainer(gameWorld);
-var webSocketManager = new WebSocketManager(gameWorld, "ws://localhost:8080/websocket", connected => {
+var webSocketManager = new WebSocketManager(gameWorld, webSocketUrl, connected => {
     var connectButton = document.getElementById("buttonConnect");
     if (connected == true) {
         connectButton.disabled = false;
@@ -405,6 +397,20 @@ var webSocketManager = new WebSocketManager(gameWorld, "ws://localhost:8080/webs
         document.getElementById("buttonAdd").disabled = true;
     }
 });
+
+gameWorld.callbackViewDragged = obj => {
+    fetch(serverUrl + "/entity/" + obj.id, {
+          method: "POST",
+          body: JSON.stringify({
+            x: obj.x,
+            y: obj.y,
+            angle: obj.angle
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+    });
+};
 
 window.addEventListener('resize', () => {
     gameWorld.updateSize(document.documentElement.clientWidth, document.documentElement.clientHeight);
@@ -432,7 +438,7 @@ function clickAddEntity() {
 }
 
 function clickEditSave() {
-    var url = "http://localhost:8080/entity";
+    var url = serverUrl + "/entity";
     if (editEntityContainer.selectedEntity != null) {
         url += "/" + editEntityContainer.selectedEntity.id
     }
@@ -460,7 +466,7 @@ function clickEditCancel() {
 
 function clickEditDestroy() {
     if (editEntityContainer.selectedEntity != null) {
-        fetch("http://localhost:8080/entity/" + editEntityContainer.selectedEntity.id, {
+        fetch(serverUrl + "/entity/" + editEntityContainer.selectedEntity.id, {
               method: "DELETE",
               body: "",
               headers: {

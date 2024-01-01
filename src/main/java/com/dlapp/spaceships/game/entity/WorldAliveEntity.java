@@ -47,7 +47,6 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     public WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
-        attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, shotCreatedTime, skill.type, getId(), skill.energyPrice));
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
         gameWorld.addEntity(shot);
