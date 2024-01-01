@@ -50,7 +50,7 @@ public class EntityEndpoint extends BaseHttpServlet {
                         jsonNode.get("x").asInt(),
                         jsonNode.get("y").asInt(),
                         jsonNode.get("angle").asInt());
-                ServerApp.instance().getRoom().addEntity(entity);
+                ServerApp.instance().getRoom().addEntity(entity, System.currentTimeMillis());
                 sendResponse(resp, CONTENT_TYPE_JSON, entity.toJson().toString());
             } else {
                 // Update entity

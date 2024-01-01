@@ -114,7 +114,7 @@ public class WorldEntity {
         gameWorld.onEntityDetachInfluence(this, influence);
     }
 
-    public void proceed(long time, List<WorldEntity> objectsToAdd) {
+    public void proceed(long time) {
         movement.step(time);
 
         addNewState(time);

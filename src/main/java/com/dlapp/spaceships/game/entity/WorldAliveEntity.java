@@ -49,7 +49,7 @@ public class WorldAliveEntity extends WorldEntity {
     public WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
-        gameWorld.addEntity(shot);
+        gameWorld.addEntity(shot, shotCreatedTime);
 
         // As player provides timestamp when shot was generated - need to check if any collisions
         // occurred in "past" between client time and current server time

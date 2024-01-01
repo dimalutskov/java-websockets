@@ -33,9 +33,10 @@ public class GameRoom implements GameWorld {
     }
 
     @Override
-    public void addEntity(WorldEntity entity) {
+    public void addEntity(WorldEntity entity, long time) {
         entities.add(entity);
         collisionsHandler.registerEntity(entity);
+        onObjectAdded(entity, time);
     }
 
     @Override
@@ -143,22 +144,15 @@ public class GameRoom implements GameWorld {
     private synchronized void proceed(long time) {
         collisionsHandler.checkCollisions();
 
-        List<WorldEntity> objectsToAdd = new ArrayList<>();
         Iterator<WorldEntity> objectsIt = entities.listIterator();
         while (objectsIt.hasNext()) {
             WorldEntity object = objectsIt.next();
-            object.proceed(time, objectsToAdd);
+            object.proceed(time);
             if (object.isDestroyed()) {
                 objectsIt.remove();
                 onObjectDestroyed(object, time);
             }
         }
-        for (WorldEntity addedObject : objectsToAdd) {
-            entities.add(addedObject);
-            onObjectAdded(addedObject, time);
-        }
-
-//        updateTestObjects(time);
     }
 
     private void onObjectAdded(WorldEntity object, long time) {

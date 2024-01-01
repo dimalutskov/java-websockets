@@ -4,7 +4,7 @@ import com.dlapp.spaceships.game.entity.EntityInfluence;
 import com.dlapp.spaceships.game.entity.WorldEntity;
 
 public interface GameWorld {
-    void addEntity(WorldEntity entity);
+    void addEntity(WorldEntity entity, long time);
     WorldEntity getEntity(String id);
     void checkPastCollisions(WorldEntity entity, long time);
 

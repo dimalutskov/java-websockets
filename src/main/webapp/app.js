@@ -398,6 +398,8 @@ var webSocketManager = new WebSocketManager(gameWorld, webSocketUrl, connected =
     }
 });
 
+var SKILL_TYPE_SHOT = 1;
+
 gameWorld.callbackViewDragged = obj => {
     fetch(serverUrl + "/entity/" + obj.id, {
           method: "POST",
@@ -474,5 +476,19 @@ function clickEditDestroy() {
               }
             });
     }
+}
 
+function clickSkillShot() {
+    if (editEntityContainer.selectedEntity != null) {
+        fetch(serverUrl + "/skill", {
+              method: "POST",
+              body: JSON.stringify({
+                id: editEntityContainer.selectedEntity.id,
+                skillId: SKILL_TYPE_SHOT
+              }),
+              headers: {
+                "Content-type": "application/json; charset=UTF-8"
+              }
+            });
+    }
 }
