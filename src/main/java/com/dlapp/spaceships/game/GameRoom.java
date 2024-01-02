@@ -157,11 +157,17 @@ public class GameRoom implements GameWorld {
     }
 
     private void onObjectAdded(WorldEntity object, long time) {
-        broadcast(GameProtocol.SERVER_MSG_OBJECT_ADDED + ";" + time + ";" + object.getStateString());
+        broadcast(GameProtocol.SERVER_MSG_OBJECT_ADDED + ";" +
+                System.currentTimeMillis() + ";" +
+                time + ";" +
+                object.getStateString());
     }
 
     private void onObjectDestroyed(WorldEntity object, long time) {
-        broadcast(GameProtocol.SERVER_MSG_OBJECT_DESTROYED + ";" + time + ";" + object.getStateString());
+        broadcast(GameProtocol.SERVER_MSG_OBJECT_DESTROYED + ";" +
+                System.currentTimeMillis() + ";" +
+                time + ";" +
+                object.getStateString());
     }
 
     private synchronized void updateWorldState(long time) {

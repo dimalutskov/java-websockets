@@ -34,13 +34,13 @@ public class GameProtocol {
 
     /**
      * Provides object which was added to the game world
-     * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE};
+     * {MSG_TYPE};{SERVER_TIME};{OBJECT_CREATED_TIME};{OBJECT_STATE};
      */
     public static final String SERVER_MSG_OBJECT_ADDED = "objectAdded";
 
     /**
      * Provides object which was removed from the game world
-     * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE};
+     * {MSG_TYPE};{SERVER_TIME};{OBJECT_DESTROY_TIME};{OBJECT_STATE};
      */
     public static final String SERVER_MSG_OBJECT_DESTROYED = "objectDestroyed";
 
