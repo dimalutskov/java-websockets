@@ -39,6 +39,9 @@ public class SingleShotEntity extends WorldEntity {
         WorldCollisionsHandler.CollisionCallback pastCollisionCallback = (entity1, entity2, time) -> {
             update(time, entity2.getState().getX(), entity2.getState().getY(), angle, 0);
             setDestroyTime(time);
+            destroy();
+            // Apply damage
+            entity2.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, time, skillDesc.type, getId(), skillDesc.values[1]));
         };
         int checkPastCollisionsCount = 3; // TODO
         long timeStep = (currentTime - createTime) / (checkPastCollisionsCount + 1);

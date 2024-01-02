@@ -52,7 +52,7 @@ public class GameProtocol {
 
     /**
      * Notify about any new active influence(skill, shot, recover, etc) applied to any world entity
-     * {MSG_TYPE};{SERVER_TIME};{ENTITY_RECEIVER_ID};{INFLUENCE_DESC};
+     * {MSG_TYPE};{SERVER_TIME};{ENTITY_RECEIVER_ID};{INFLUENCE_ATTACH_TIME};{INFLUENCE_DESC}
      * INFLUENCE_DESC - influenceType,skillType,ownerId,values(described for each type)
      */
     public static final String SERVER_MSG_INFLUENCE_ON = "influenceOn";

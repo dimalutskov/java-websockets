@@ -57,10 +57,11 @@ public class GameRoom implements GameWorld {
         StringBuilder msg = new StringBuilder(GameProtocol.SERVER_MSG_INFLUENCE_ON + ";" +
                 System.currentTimeMillis() + ";" +
                 entity.getId() + ";" +
-                influence.type + ";" +
-                influence.skillType + ";" +
-                influence.ownerId + ";");
-        for (int value : values) msg.append(value).append(";");
+                influence.attachTime + ";" +
+                influence.type + "," +
+                influence.skillType + "," +
+                influence.ownerId + ",");
+        for (int value : values) msg.append(value).append(",");
         broadcast(msg.toString());
     }
 
