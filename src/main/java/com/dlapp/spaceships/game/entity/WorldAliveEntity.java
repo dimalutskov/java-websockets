@@ -50,8 +50,9 @@ public class WorldAliveEntity extends WorldEntity {
     public WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
         // Create shot object
         SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
-        // Pass current time as shot's state already adjusted to server time
-        gameWorld.addEntity(shot, System.currentTimeMillis());
+        // As shot's state already adjusted to server time - pass current time if shot was not destroyed in client's "past"
+        long addTime = shot.isDestroyed() ? shotCreatedTime : System.currentTimeMillis();
+        gameWorld.addEntity(shot, addTime);
         return shot;
     }
 
