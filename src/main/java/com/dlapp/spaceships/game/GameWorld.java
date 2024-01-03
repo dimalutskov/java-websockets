@@ -14,8 +14,8 @@ public class GameWorld implements IGameWorld {
 
     private final String id;
 
-    private final WorldCollisionsHandler collisionsHandler = new WorldCollisionsHandler();
-    private final List<GameObject> entities = new ArrayList(100); // TODO
+    private final GameWorldCollisions collisionsHandler = new GameWorldCollisions();
+    private final List<GameObject> gameObjects = new ArrayList(100); // TODO
     private final List<GamePlayer> players = new ArrayList();
 
     private Timer gameProcessingTimer;
@@ -32,30 +32,30 @@ public class GameWorld implements IGameWorld {
     }
 
     @Override
-    public void addEntity(GameObject entity, long time) {
-        entities.add(entity);
-        collisionsHandler.registerEntity(entity);
-        onObjectAdded(entity, time);
+    public void addGameObject(GameObject gameObject, long time) {
+        gameObjects.add(gameObject);
+        collisionsHandler.registerObject(gameObject);
+        onObjectAdded(gameObject, time);
     }
 
     @Override
-    public GameObject getEntity(String id) {
-        for (GameObject entity : entities) {
-            if (entity.getId().equals(id)) return entity;
+    public GameObject getGameObject(String id) {
+        for (GameObject gameObject : gameObjects) {
+            if (gameObject.getId().equals(id)) return gameObject;
         }
         return null;
     }
 
     @Override
-    public boolean checkPastCollisions(GameObject entity, long time, WorldCollisionsHandler.CollisionCallback callback) {
-        return collisionsHandler.checkCollisions(entity, time, callback);
+    public boolean checkPastCollisions(GameObject gameObject, long time, GameWorldCollisions.CollisionCallback callback) {
+        return collisionsHandler.checkCollisions(gameObject, time, callback);
     }
 
     @Override
-    public void onEntityApplyInfluence(GameObject entity, GameObjectInfluence influence, int... values) {
+    public void onGameObjectApplyInfluence(GameObject gameObject, GameObjectInfluence influence, int... values) {
         StringBuilder msg = new StringBuilder(GameProtocol.SERVER_MSG_INFLUENCE_ON + ";" +
                 System.currentTimeMillis() + ";" +
-                entity.getId() + ";" +
+                gameObject.getId() + ";" +
                 influence.attachTime + ";" +
                 influence.type + "," +
                 influence.skillType + "," +
@@ -65,10 +65,10 @@ public class GameWorld implements IGameWorld {
     }
 
     @Override
-    public void onEntityDetachInfluence(GameObject entity, GameObjectInfluence influence) {
+    public void onGameObjectDetachInfluence(GameObject gameObject, GameObjectInfluence influence) {
         String msg = GameProtocol.SERVER_MSG_INFLUENCE_OFF + ";" +
                 System.currentTimeMillis() + ";" +
-                entity.getId() + ";" +
+                gameObject.getId() + ";" +
                 influence.type + ";" +
                 influence.skillType + ";" +
                 influence.ownerId;
@@ -144,7 +144,7 @@ public class GameWorld implements IGameWorld {
     private synchronized void proceed(long time) {
         collisionsHandler.checkCollisions();
 
-        Iterator<GameObject> objectsIt = entities.listIterator();
+        Iterator<GameObject> objectsIt = gameObjects.listIterator();
         while (objectsIt.hasNext()) {
             GameObject object = objectsIt.next();
             object.proceed(time);
@@ -174,7 +174,7 @@ public class GameWorld implements IGameWorld {
                 .append(GameProtocol.SERVER_MSG_STATE).append(";");
         stateString.append(time).append(";");
 
-        for (GameObject obj : entities) {
+        for (GameObject obj : gameObjects) {
             stateString.append(obj.getStateString()).append(";");
         }
 
@@ -191,12 +191,12 @@ public class GameWorld implements IGameWorld {
     private void addTestObjects() {
         // Static object
         GameObject staticObject = new GameEntity(this, "test_static", EntityDesc.SPACESHIP_DESC, 230, 230, 0);
-        collisionsHandler.registerEntity(staticObject);
-        entities.add(staticObject);
+        collisionsHandler.registerObject(staticObject);
+        gameObjects.add(staticObject);
 
         GameObject staticObject2 = new GameEntity(this, "test_static2", EntityDesc.SPACESHIP_DESC, -100, 230, 0);
-        collisionsHandler.registerEntity(staticObject2);
-        entities.add(staticObject2);
+        collisionsHandler.registerObject(staticObject2);
+        gameObjects.add(staticObject2);
     }
 
 }

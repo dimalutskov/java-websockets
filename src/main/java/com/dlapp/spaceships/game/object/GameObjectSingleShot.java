@@ -2,7 +2,7 @@ package com.dlapp.spaceships.game.object;
 
 import com.dlapp.spaceships.game.GameConstants;
 import com.dlapp.spaceships.game.IGameWorld;
-import com.dlapp.spaceships.game.WorldCollisionsHandler;
+import com.dlapp.spaceships.game.GameWorldCollisions;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 
 public class GameObjectSingleShot extends GameObject {
@@ -36,12 +36,12 @@ public class GameObjectSingleShot extends GameObject {
 
         // As player provides timestamp when shot was generated - need to check if any collisions
         // occurred in "past" between client time and current server time
-        WorldCollisionsHandler.CollisionCallback pastCollisionCallback = (entity1, entity2, time) -> {
-            update(time, entity2.getState().getX(), entity2.getState().getY(), angle, 0);
+        GameWorldCollisions.CollisionCallback pastCollisionCallback = (gameObject1, gameObject2, time) -> {
+            update(time, gameObject2.getState().getX(), gameObject2.getState().getY(), angle, 0);
             setDestroyTime(time);
             destroy();
             // Apply damage
-            entity2.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, time, skillDesc.type, getId(), skillDesc.values[1]));
+            gameObject2.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, time, skillDesc.type, getId(), skillDesc.values[1]));
         };
         int checkPastCollisionsCount = 3; // TODO
         long timeStep = (currentTime - createTime) / (checkPastCollisionsCount + 1);
@@ -63,10 +63,10 @@ public class GameObjectSingleShot extends GameObject {
     }
 
     @Override
-    public void onCollision(GameObject entity) {
-        super.onCollision(entity);
+    public void onCollision(GameObject gameObject) {
+        super.onCollision(gameObject);
 
-        entity.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
+        gameObject.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
         destroy();
     }
 

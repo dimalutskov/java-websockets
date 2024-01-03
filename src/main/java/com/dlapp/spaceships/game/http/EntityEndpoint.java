@@ -25,7 +25,7 @@ public class EntityEndpoint extends BaseHttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String entityId = readEntityIdPath(req);
-        GameObject entity = ServerApp.instance().getWorld().getEntity(entityId);
+        GameObject entity = ServerApp.instance().getWorld().getGameObject(entityId);
         if (entity == null) {
             sendError(resp, "Entity not found");
         } else {
@@ -50,11 +50,11 @@ public class EntityEndpoint extends BaseHttpServlet {
                         jsonNode.get("x").asInt(),
                         jsonNode.get("y").asInt(),
                         jsonNode.get("angle").asInt());
-                ServerApp.instance().getWorld().addEntity(entity, System.currentTimeMillis());
+                ServerApp.instance().getWorld().addGameObject(entity, System.currentTimeMillis());
                 sendResponse(resp, CONTENT_TYPE_JSON, entity.toJson().toString());
             } else {
                 // Update entity
-                GameObject entity = ServerApp.instance().getWorld().getEntity(path);
+                GameObject entity = ServerApp.instance().getWorld().getGameObject(path);
                 if (entity == null) {
                     sendError(resp, "Entity not found");
                 } else {
@@ -81,7 +81,7 @@ public class EntityEndpoint extends BaseHttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String entityId = readEntityIdPath(req);
-        GameObject entity = ServerApp.instance().getWorld().getEntity(entityId);
+        GameObject entity = ServerApp.instance().getWorld().getGameObject(entityId);
         if (entity == null) {
             sendError(resp, "Entity not found");
         } else {

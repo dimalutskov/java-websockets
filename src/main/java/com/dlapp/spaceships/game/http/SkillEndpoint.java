@@ -19,7 +19,7 @@ public class SkillEndpoint extends BaseHttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             JsonNode jsonNode = sObjectMapper.readTree(readRequestBody(req));
-            GameEntity entity = (GameEntity) ServerApp.instance().getWorld().getEntity(jsonNode.get("id").asText());
+            GameEntity entity = (GameEntity) ServerApp.instance().getWorld().getGameObject(jsonNode.get("id").asText());
             int skillId = jsonNode.get("skillId").asInt();
             if (GameConstants.SKILL_TYPE_SHOT == skillId) {
                 entity.handleShotSkill(System.currentTimeMillis(), SkillDesc.SKILL_SHOT,

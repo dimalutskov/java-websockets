@@ -58,7 +58,7 @@ public class GamePlayer {
                     entity.destroy();
                 }
                 entity = new PlayerEntity(world, EntityDesc.SPACESHIP_DESC, session.getId());
-                world.addEntity(entity, System.currentTimeMillis());
+                world.addGameObject(entity, System.currentTimeMillis());
                 break;
             }
 

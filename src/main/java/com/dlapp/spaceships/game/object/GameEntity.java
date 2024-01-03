@@ -29,8 +29,8 @@ public class GameEntity extends GameObject {
     }
 
     @Override
-    protected GameObjectState createEntityState(long time, int size, int x, int y, int angle) {
-        State result = new State(super.createEntityState(time, size, x, y, angle));
+    protected GameObjectState createState(long time, int size, int x, int y, int angle) {
+        State result = new State(super.createState(time, size, x, y, angle));
         if (getState() != null) {
             result.health = getState().health;
             result.energy = getState().energy;
@@ -54,7 +54,7 @@ public class GameEntity extends GameObject {
         GameObjectSingleShot shot = new GameObjectSingleShot(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
         // As shot's state already adjusted to server time - pass current time if shot was not destroyed in client's "past"
         long addTime = shot.isDestroyed() ? shotCreatedTime : System.currentTimeMillis();
-        gameWorld.addEntity(shot, addTime);
+        gameWorld.addGameObject(shot, addTime);
         return shot;
     }
 
@@ -68,7 +68,7 @@ public class GameEntity extends GameObject {
             case GameConstants.INFLUENCE_SINGLE_DAMAGE:
                 int appliedValue = influence.values[0];
                 this.getState().health = Math.max(0, this.getState().health - appliedValue);
-                gameWorld.onEntityApplyInfluence(this, influence, appliedValue);
+                gameWorld.onGameObjectApplyInfluence(this, influence, appliedValue);
                 if (getState().health == 0) {
                     destroy();
                 }
@@ -89,8 +89,8 @@ public class GameEntity extends GameObject {
     }
 
     @Override
-    public void onCollision(GameObject entity) {
-        super.onCollision(entity);
+    public void onCollision(GameObject gameObject) {
+        super.onCollision(gameObject);
     }
 
     @Override

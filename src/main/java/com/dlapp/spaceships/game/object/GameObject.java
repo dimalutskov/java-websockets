@@ -35,12 +35,12 @@ public class GameObject {
         this.gameWorld = world;
         this.id = id;
         this.type = type;
-        states.push(createEntityState(time, size, x, y, angle));
+        states.push(createState(time, size, x, y, angle));
         movement.update(x, y);
         movement.setAngle(angle);
     }
 
-    protected GameObjectState createEntityState(long time, int size, int x, int y, int angle) {
+    protected GameObjectState createState(long time, int size, int x, int y, int angle) {
         return new GameObjectState(time, size, x, y, angle);
     }
 
@@ -119,7 +119,7 @@ public class GameObject {
 
     public void detachInfluence(GameObjectInfluence influence) {
         influences.remove(influence);
-        gameWorld.onEntityDetachInfluence(this, influence);
+        gameWorld.onGameObjectDetachInfluence(this, influence);
     }
 
     public void proceed(long time) {
@@ -138,7 +138,7 @@ public class GameObject {
     }
 
     protected void addNewState(long time) {
-        states.push(createEntityState(time, getState().getSize(),
+        states.push(createState(time, getState().getSize(),
                 (int) movement.getCurX(),
                 (int) movement.getCurY(),
                 (int) movement.getAngle()));
@@ -148,13 +148,13 @@ public class GameObject {
         return true;
     }
 
-    public void onCollision(GameObject entity) {
+    public void onCollision(GameObject gameObject) {
         System.out.println("@@@ onCollision " + getId() + " " + getState().getRect()
-                +  " || " + entity.getId() + " " + entity.getState().getRect());
+                +  " || " + gameObject.getId() + " " + gameObject.getState().getRect());
     }
 
-    public void onCollisionEnd(GameObject entity) {
-        System.out.println("@@@ onCollisionEnd " + getId() + " " + entity.getId());
+    public void onCollisionEnd(GameObject gameObject) {
+        System.out.println("@@@ onCollisionEnd " + getId() + " " + gameObject.getId());
     }
 
     public final String getStateString() {
