@@ -1,6 +1,6 @@
 package com.dlapp.spaceships;
 
-import com.dlapp.spaceships.game.GameRoom;
+import com.dlapp.spaceships.game.GameWorld;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -15,7 +15,7 @@ public class ServerApp implements ServletContextListener {
         return sInstance;
     }
 
-    private GameRoom gameRoom = new GameRoom("room_id");
+    private GameWorld gameWorld = new GameWorld("room_id");
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
@@ -30,8 +30,8 @@ public class ServerApp implements ServletContextListener {
 
     }
 
-    public GameRoom getRoom() {
-        return gameRoom;
+    public GameWorld getWorld() {
+        return gameWorld;
     }
 
 }

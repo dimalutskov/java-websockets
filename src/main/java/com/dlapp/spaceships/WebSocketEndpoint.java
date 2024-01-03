@@ -1,7 +1,7 @@
 package com.dlapp.spaceships;
 
 import com.dlapp.spaceships.game.GamePlayer;
-import com.dlapp.spaceships.game.GameRoom;
+import com.dlapp.spaceships.game.GameWorld;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -18,23 +18,23 @@ public class WebSocketEndpoint {
     @OnOpen
     public void onOpen(Session session) {
         System.out.println("@@@ onOpen " + this + " " + session.getId());
-        GameRoom room = ServerApp.instance().getRoom();
-        this.player = new GamePlayer(room, session);
-        room.connectPlayer(player);
+        GameWorld world = ServerApp.instance().getWorld();
+        this.player = new GamePlayer(world, session);
+        world.connectPlayer(player);
     }
 
     @OnMessage
     public void onMessage(Session session, String message) {
-        GameRoom room = ServerApp.instance().getRoom();
-        room.onClientMessage(player, message);
+        GameWorld world = ServerApp.instance().getWorld();
+        world.onClientMessage(player, message);
     }
 
     @OnClose
     public void onClose(Session session) {
         System.out.println("@@@ onClose " + this + " " + session.getId());
 
-        GameRoom room = ServerApp.instance().getRoom();
-        room.disconnectPlayer(player);
+        GameWorld world = ServerApp.instance().getWorld();
+        world.disconnectPlayer(player);
     }
 
     @OnError

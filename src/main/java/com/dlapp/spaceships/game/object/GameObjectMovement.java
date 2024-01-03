@@ -1,8 +1,8 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
 import com.dlapp.spaceships.MathUtils;
 
-class WorldEntityMovement {
+class GameObjectMovement {
 
     private float mCurX;
     private float mCurY;

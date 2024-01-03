@@ -1,10 +1,13 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
 import java.awt.geom.Rectangle2D;
 
-public class EntityState {
+/**
+ * Describes object's state in specified time
+ */
+public class GameObjectState {
 
-    public final long createTime;
+    public final long time;
 
     private int size;
     private int x;
@@ -13,8 +16,8 @@ public class EntityState {
 
     private final Rectangle2D.Double rect = new Rectangle2D.Double();
 
-    public EntityState(long createTime, int size, int x, int y, int angle) {
-        this.createTime = createTime;
+    public GameObjectState(long createTime, int size, int x, int y, int angle) {
+        this.time = createTime;
         this.size = size;
         this.x = x;
         this.y = y;
@@ -62,7 +65,7 @@ public class EntityState {
         return rect;
     }
 
-    public String toStateString() {
+    public String toSocketString() {
         return size + "," +
                 x + "," +
                 y + "," +

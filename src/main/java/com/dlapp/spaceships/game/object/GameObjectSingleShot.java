@@ -1,11 +1,11 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
 import com.dlapp.spaceships.game.GameConstants;
-import com.dlapp.spaceships.game.GameWorld;
+import com.dlapp.spaceships.game.IGameWorld;
 import com.dlapp.spaceships.game.WorldCollisionsHandler;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 
-public class SingleShotEntity extends WorldEntity {
+public class GameObjectSingleShot extends GameObject {
 
     private static final String ID_SEPARATOR = "::";
 
@@ -16,11 +16,11 @@ public class SingleShotEntity extends WorldEntity {
     // Shots provided by clients - created in "past"
     private final long createTime;
 
-    public SingleShotEntity(GameWorld world, SkillDesc skillDesc, String ownerId, long createTime, int x, int y, int angle) {
+    public GameObjectSingleShot(IGameWorld world, SkillDesc skillDesc, String ownerId, long createTime, int x, int y, int angle) {
         this(world, ownerId + ID_SEPARATOR + generatedShotId++, skillDesc, createTime, x, y, angle);
     }
 
-    private SingleShotEntity(GameWorld world, String id, SkillDesc skillDesc, long createTime, int x, int y, int angle) {
+    private GameObjectSingleShot(IGameWorld world, String id, SkillDesc skillDesc, long createTime, int x, int y, int angle) {
         super(world, createTime, id, GameConstants.ENTITY_TYPE_SHOT, skillDesc.values[0], x, y, angle);
         this.skillDesc = skillDesc;
         this.createTime = createTime;
@@ -41,7 +41,7 @@ public class SingleShotEntity extends WorldEntity {
             setDestroyTime(time);
             destroy();
             // Apply damage
-            entity2.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, time, skillDesc.type, getId(), skillDesc.values[1]));
+            entity2.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, time, skillDesc.type, getId(), skillDesc.values[1]));
         };
         int checkPastCollisionsCount = 3; // TODO
         long timeStep = (currentTime - createTime) / (checkPastCollisionsCount + 1);
@@ -53,20 +53,20 @@ public class SingleShotEntity extends WorldEntity {
     }
 
     @Override
-    public EntityState findState(long time) {
-        EntityState current = getState();
-        EntityState old = super.findState(createTime);
-        float progress = (time - old.createTime) / (float) (current.createTime - old.createTime);
+    public GameObjectState findState(long time) {
+        GameObjectState current = getState();
+        GameObjectState old = super.findState(createTime);
+        float progress = (time - old.time) / (float) (current.time - old.time);
         float x = old.getX() + (current.getX() - old.getX()) * progress;
         float y = old.getY() + (current.getY() - old.getY()) * progress;
-        return new EntityState(time, current.getSize(), (int) x, (int) y, current.getAngle());
+        return new GameObjectState(time, current.getSize(), (int) x, (int) y, current.getAngle());
     }
 
     @Override
-    public void onCollision(WorldEntity entity) {
+    public void onCollision(GameObject entity) {
         super.onCollision(entity);
 
-        entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
+        entity.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_DAMAGE, System.currentTimeMillis(), skillDesc.type, getId(), skillDesc.values[1]));
         destroy();
     }
 

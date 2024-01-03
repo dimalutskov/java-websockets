@@ -1,6 +1,9 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
-public class EntityInfluence {
+/**
+ * Describes influence which affects on object's properties (consume energy, health, provides power ups, etc)
+ */
+public class GameObjectInfluence {
 
     public final int type;
     public final long attachTime;
@@ -11,7 +14,7 @@ public class EntityInfluence {
 
     private long applyTime;
 
-    public EntityInfluence(int type, long attachTime, int skillType, String ownerId, int... values) {
+    public GameObjectInfluence(int type, long attachTime, int skillType, String ownerId, int... values) {
         this.type = type;
         this.attachTime = attachTime;
         this.skillType = skillType;

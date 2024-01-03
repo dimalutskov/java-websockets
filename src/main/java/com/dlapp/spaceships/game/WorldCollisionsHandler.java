@@ -1,24 +1,24 @@
 package com.dlapp.spaceships.game;
 
 import com.dlapp.spaceships.MathUtils;
-import com.dlapp.spaceships.game.entity.EntityState;
-import com.dlapp.spaceships.game.entity.SingleShotEntity;
-import com.dlapp.spaceships.game.entity.WorldEntity;
+import com.dlapp.spaceships.game.object.GameObjectState;
+import com.dlapp.spaceships.game.object.GameObjectSingleShot;
+import com.dlapp.spaceships.game.object.GameObject;
 
 import java.util.*;
 
 public class WorldCollisionsHandler {
 
     public interface CollisionCallback {
-        void onCollision(WorldEntity entity1, WorldEntity entity2, long time);
+        void onCollision(GameObject entity1, GameObject entity2, long time);
     }
 
-    private final List<WorldEntity> entities = new ArrayList<>();
+    private final List<GameObject> entities = new ArrayList<>();
 
     // Key - objectId, value - list of collided objects
-    private final Map<String, Set<WorldEntity>> collisions = new HashMap<>();
+    private final Map<String, Set<GameObject>> collisions = new HashMap<>();
 
-    void registerEntity(WorldEntity entity) {
+    void registerEntity(GameObject entity) {
         entities.add(entity);
     }
 
@@ -29,15 +29,15 @@ public class WorldCollisionsHandler {
             for (int j = 0; j < entities.size(); j++) {
                 if (j == i) continue;
 
-                WorldEntity obj1Handler = entities.get(i);
-                WorldEntity obj2Handler = entities.get(j);
+                GameObject obj1Handler = entities.get(i);
+                GameObject obj2Handler = entities.get(j);
 
                 // Notify collision end
                 if (obj1Handler.isDestroyed()) {
                     // Obj1 collisions
-                    Set<WorldEntity> obj1Collisions = collisions.remove(obj1Handler.getId());
+                    Set<GameObject> obj1Collisions = collisions.remove(obj1Handler.getId());
                     if (obj1Collisions != null) {
-                        for (WorldEntity entity : obj1Collisions) {
+                        for (GameObject entity : obj1Collisions) {
                             obj1Handler.onCollisionEnd(entity);
                             entity.onCollisionEnd(obj1Handler);
                         }
@@ -56,10 +56,10 @@ public class WorldCollisionsHandler {
         }
     }
 
-    boolean checkCollisions(WorldEntity entity, long serverTime, CollisionCallback callback) {
+    boolean checkCollisions(GameObject entity, long serverTime, CollisionCallback callback) {
         System.out.println("@@@ CHECK " + serverTime);
         boolean result = false;
-        for (WorldEntity otherEntity : entities) {
+        for (GameObject otherEntity : entities) {
             if (entity != otherEntity) {
                 if (canBeCollided(entity, otherEntity) && hasCollision(entity, otherEntity, serverTime)) {
                     callback.onCollision(entity, otherEntity, serverTime);
@@ -70,10 +70,10 @@ public class WorldCollisionsHandler {
         return result;
     }
 
-    void checkCollision(WorldEntity entity, WorldEntity otherEntity) {
+    void checkCollision(GameObject entity, GameObject otherEntity) {
         if (canBeCollided(entity, otherEntity)) {
             // Obj1 collisions
-            Set<WorldEntity> obj1Collisions = collisions.computeIfAbsent(entity.getId(), k -> new HashSet<>());
+            Set<GameObject> obj1Collisions = collisions.computeIfAbsent(entity.getId(), k -> new HashSet<>());
 
             if (hasCollision(entity, otherEntity, 0)) {
                 entity.onCollision(otherEntity);
@@ -89,17 +89,17 @@ public class WorldCollisionsHandler {
         }
     }
 
-    private static boolean canBeCollided(WorldEntity entity, WorldEntity otherEntity) {
+    private static boolean canBeCollided(GameObject entity, GameObject otherEntity) {
         switch (entity.getType()) {
             case GameConstants.ENTITY_TYPE_SPACESHIP:
                 if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SHOT) {
-                    String shotOwnerId = SingleShotEntity.getOwnerId(otherEntity.getId());
+                    String shotOwnerId = GameObjectSingleShot.getOwnerId(otherEntity.getId());
                     return !shotOwnerId.equals(entity.getId());
                 }
                 break;
             case GameConstants.ENTITY_TYPE_SHOT:
                 if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SPACESHIP) {
-                    String shotOwnerId = SingleShotEntity.getOwnerId(entity.getId());
+                    String shotOwnerId = GameObjectSingleShot.getOwnerId(entity.getId());
                     return !shotOwnerId.equals(otherEntity.getId());
                 }
                 if (otherEntity.getType() == GameConstants.ENTITY_TYPE_SHOT) {
@@ -110,13 +110,13 @@ public class WorldCollisionsHandler {
         return false;
     }
 
-    private static boolean hasCollision(WorldEntity entity1, WorldEntity entity2, long time) {
-        EntityState state1 = time == 0 ? entity1.getState() : entity1.findState(time);
-        EntityState state2 = time == 0 ? entity2.getState() : entity2.findState(time);
+    private static boolean hasCollision(GameObject entity1, GameObject entity2, long time) {
+        GameObjectState state1 = time == 0 ? entity1.getState() : entity1.findState(time);
+        GameObjectState state2 = time == 0 ? entity2.getState() : entity2.findState(time);
 
         if (time != 0) {
-            String o1 = entity1.getId() + " " + entity1.findState(time).createTime + " " + entity1.findState(time).toStateString();
-            String o2 = entity2.getId() + " " + entity2.findState(time).createTime + " " + entity2.findState(time).toStateString();
+            String o1 = entity1.getId() + " " + entity1.findState(time).time + " " + entity1.findState(time).toSocketString();
+            String o2 = entity2.getId() + " " + entity2.findState(time).time + " " + entity2.findState(time).toSocketString();
             System.out.println("@@@ Check collision " + o1 + " || " + o2);
         }
 

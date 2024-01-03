@@ -1,10 +1,10 @@
 package com.dlapp.spaceships.game;
 
-import com.dlapp.spaceships.game.desc.AliveEntityDesc;
+import com.dlapp.spaceships.game.desc.EntityDesc;
 import com.dlapp.spaceships.game.desc.SkillDesc;
-import com.dlapp.spaceships.game.entity.EntityInfluence;
-import com.dlapp.spaceships.game.entity.PlayerEntity;
-import com.dlapp.spaceships.game.entity.WorldEntity;
+import com.dlapp.spaceships.game.object.GameObjectInfluence;
+import com.dlapp.spaceships.game.object.PlayerEntity;
+import com.dlapp.spaceships.game.object.GameObject;
 
 import javax.websocket.Session;
 import java.io.IOException;
@@ -12,21 +12,17 @@ import java.util.*;
 
 public class GamePlayer {
 
-    private final GameWorld world;
+    private final IGameWorld world;
     private final Session session;
 
     private PlayerEntity entity;
 
     // key - skillType, value - list of entity's influences when skill is activated
-    private final Map<Integer, List<EntityInfluence>> mSkillInfluences = new HashMap<>();
+    private final Map<Integer, List<GameObjectInfluence>> mSkillInfluences = new HashMap<>();
 
-    public GamePlayer(GameWorld world, Session session) {
+    public GamePlayer(IGameWorld world, Session session) {
         this.world = world;
         this.session = session;
-    }
-
-    void createEntity(PlayerEntity entity) {
-        this.entity = entity;
     }
 
     public PlayerEntity getEntity() {
@@ -54,14 +50,14 @@ public class GamePlayer {
         }
     }
 
-    public synchronized void onMessage(String[] split, List<WorldEntity> addedObjects) {
+    public synchronized void onMessage(String[] split, List<GameObject> addedObjects) {
         long time = System.currentTimeMillis();
         switch (split[0])  {
             case GameProtocol.CLIENT_MSG_JOIN: {
                 if (entity != null) {
                     entity.destroy();
                 }
-                entity = new PlayerEntity(world, AliveEntityDesc.SPACESHIP_DESC, session.getId());
+                entity = new PlayerEntity(world, EntityDesc.SPACESHIP_DESC, session.getId());
                 world.addEntity(entity, System.currentTimeMillis());
                 break;
             }
@@ -81,6 +77,7 @@ public class GamePlayer {
                 if (serverTime == 0) {
                     serverTime = System.currentTimeMillis() - 2000;
                 }
+
                 int skillType = Integer.parseInt(split[2]);
                 SkillDesc skill = SkillDesc.find(entity.desc.skills, skillType);
                 int requiredEnergy = SkillDesc.typeOf(skill.type) == SkillDesc.SkillType.CONTINUOUS
@@ -90,19 +87,19 @@ public class GamePlayer {
                 }
 
                 if (SkillDesc.typeOf(skillType) == SkillDesc.SkillType.CONTINUOUS) {
-                    List<EntityInfluence> influences = new ArrayList<>();
+                    List<GameObjectInfluence> influences = new ArrayList<>();
                     // Energy consumption
-                    influences.add(new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
+                    influences.add(new GameObjectInfluence(GameConstants.INFLUENCE_CONTINUOUS_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
                     if (skillType == GameConstants.SKILL_TYPE_ACCELERATION) {
 
                     } else if (skillType == GameConstants.SKILL_TYPE_SHIELD) {
-                        influences.add(new EntityInfluence(GameConstants.INFLUENCE_CONTINUOUS_SHIELD, time, skillType, entity.getId(), skill.values[0]));
+                        influences.add(new GameObjectInfluence(GameConstants.INFLUENCE_CONTINUOUS_SHIELD, time, skillType, entity.getId(), skill.values[0]));
                     }
                     mSkillInfluences.put(skillType, influences);
-                    for (EntityInfluence influence : influences) entity.attachInfluence(influence);
+                    for (GameObjectInfluence influence : influences) entity.attachInfluence(influence);
                 } else {
                     // Consume energy
-                    entity.attachInfluence(new EntityInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
+                    entity.attachInfluence(new GameObjectInfluence(GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION, time, skillType, entity.getId(), skill.energyPrice));
 
                     if (skillType == GameConstants.SKILL_TYPE_SHOT) {
                         int x = Integer.parseInt(split[3]);
@@ -117,9 +114,9 @@ public class GamePlayer {
             case GameProtocol.CLIENT_MSG_SKILL_OFF: {
                 int skillId = Integer.parseInt(split[2]);
 
-                List<EntityInfluence> influences = mSkillInfluences.get(skillId);
+                List<GameObjectInfluence> influences = mSkillInfluences.get(skillId);
                 if (influences != null) {
-                    for (EntityInfluence influence : influences) entity.detachInfluence(influence);
+                    for (GameObjectInfluence influence : influences) entity.detachInfluence(influence);
                 }
 
                 break;

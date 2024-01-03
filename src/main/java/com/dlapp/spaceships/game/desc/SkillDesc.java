@@ -1,6 +1,9 @@
 package com.dlapp.spaceships.game.desc;
 
 import com.dlapp.spaceships.game.GameConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
 
@@ -45,5 +48,19 @@ public class SkillDesc {
         }
         return SkillType.SINGLE;
     }
+
+    public ObjectNode toJson() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode result = mapper.createObjectNode();
+        result.put("type", type);
+        result.put("energyPrice", energyPrice);
+
+        ArrayNode valuesNode = mapper.createArrayNode();
+        for (int value : values) valuesNode.add(value);
+        result.put("values", valuesNode);
+
+        return result;
+    }
+
 
 }

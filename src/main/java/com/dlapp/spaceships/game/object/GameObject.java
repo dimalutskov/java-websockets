@@ -1,6 +1,6 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
-import com.dlapp.spaceships.game.GameWorld;
+import com.dlapp.spaceships.game.IGameWorld;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -8,30 +8,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-public class WorldEntity {
+public class GameObject {
 
     // States will be kept by this time
     private static final long KEEP_STATES_TIME = 2000;
 
-    protected final GameWorld gameWorld;
+    protected final IGameWorld gameWorld;
 
     private final String id;
     private final int type;
 
-    private final Stack<EntityState> states = new Stack<>();
+    private final Stack<GameObjectState> states = new Stack<>();
 
     private long destroyTime;
     private boolean isDestroyed;
 
-    private final List<EntityInfluence> influences = new ArrayList<>();
+    private final List<GameObjectInfluence> influences = new ArrayList<>();
 
-    private final WorldEntityMovement movement = new WorldEntityMovement();
+    private final GameObjectMovement movement = new GameObjectMovement();
 
-    public WorldEntity(GameWorld world, String id, int type, int size, int x, int y, int angle) {
+    public GameObject(IGameWorld world, String id, int type, int size, int x, int y, int angle) {
         this(world, System.currentTimeMillis(), id, type, size, x, y, angle);
     }
 
-    public WorldEntity(GameWorld world, long time, String id, int type, int size, int x, int y, int angle) {
+    public GameObject(IGameWorld world, long time, String id, int type, int size, int x, int y, int angle) {
         this.gameWorld = world;
         this.id = id;
         this.type = type;
@@ -40,8 +40,8 @@ public class WorldEntity {
         movement.setAngle(angle);
     }
 
-    protected EntityState createEntityState(long time, int size, int x, int y, int angle) {
-        return new EntityState(time, size, x, y, angle);
+    protected GameObjectState createEntityState(long time, int size, int x, int y, int angle) {
+        return new GameObjectState(time, size, x, y, angle);
     }
 
     public String getId() {
@@ -52,15 +52,15 @@ public class WorldEntity {
         return type;
     }
 
-    public EntityState getState() {
+    public GameObjectState getState() {
         return states.isEmpty() ? null : states.peek();
     }
 
-    public EntityState findState(long time) {
+    public GameObjectState findState(long time) {
         long timeDiff = Long.MAX_VALUE;
-        EntityState nearestState = null;
-        for (EntityState state : states) {
-            long diff = Math.abs(state.createTime - time);
+        GameObjectState nearestState = null;
+        for (GameObjectState state : states) {
+            long diff = Math.abs(state.time - time);
             if (diff > timeDiff) {
                 return nearestState;
             }
@@ -113,11 +113,11 @@ public class WorldEntity {
         movement.step(time);
     }
 
-    public void attachInfluence(EntityInfluence influence) {
+    public void attachInfluence(GameObjectInfluence influence) {
         influences.add(influence);
     }
 
-    public void detachInfluence(EntityInfluence influence) {
+    public void detachInfluence(GameObjectInfluence influence) {
         influences.remove(influence);
         gameWorld.onEntityDetachInfluence(this, influence);
     }
@@ -126,7 +126,7 @@ public class WorldEntity {
         movement.step(time);
 
         addNewState(time);
-        if (time - states.get(states.size() - 1).createTime > KEEP_STATES_TIME) {
+        if (time - states.get(states.size() - 1).time > KEEP_STATES_TIME) {
             states.remove(states.size() - 1);
         }
 
@@ -144,23 +144,23 @@ public class WorldEntity {
                 (int) movement.getAngle()));
     }
 
-    protected boolean applyInfluence(EntityInfluence influence, long time) {
+    protected boolean applyInfluence(GameObjectInfluence influence, long time) {
         return true;
     }
 
-    public void onCollision(WorldEntity entity) {
+    public void onCollision(GameObject entity) {
         System.out.println("@@@ onCollision " + getId() + " " + getState().getRect()
                 +  " || " + entity.getId() + " " + entity.getState().getRect());
     }
 
-    public void onCollisionEnd(WorldEntity entity) {
+    public void onCollisionEnd(GameObject entity) {
         System.out.println("@@@ onCollisionEnd " + getId() + " " + entity.getId());
     }
 
     public final String getStateString() {
         return id + "," +
                 type + "," +
-                getState().toStateString();
+                getState().toSocketString();
     }
 
     public ObjectNode toJson() {

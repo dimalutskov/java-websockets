@@ -1,19 +1,21 @@
-package com.dlapp.spaceships.game.entity;
+package com.dlapp.spaceships.game.object;
 
 import com.dlapp.spaceships.game.GameConstants;
-import com.dlapp.spaceships.game.GameWorld;
-import com.dlapp.spaceships.game.WorldCollisionsHandler;
-import com.dlapp.spaceships.game.desc.AliveEntityDesc;
+import com.dlapp.spaceships.game.IGameWorld;
+import com.dlapp.spaceships.game.desc.EntityDesc;
 import com.dlapp.spaceships.game.desc.SkillDesc;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.dlapp.spaceships.game.GameConstants.INFLUENCE_CONTINUOUS_ENERGY_RECOVER;
 
-public class WorldAliveEntity extends WorldEntity {
+/**
+ * Extended "alive" GameObject which can perform actions
+ */
+public class GameEntity extends GameObject {
 
-    protected final AliveEntityDesc desc;
+    protected final EntityDesc desc;
 
-    public WorldAliveEntity(GameWorld world, String id, AliveEntityDesc desc, int x, int y, int angle) {
+    public GameEntity(IGameWorld world, String id, EntityDesc desc, int x, int y, int angle) {
         super(world, id, desc.type, desc.size, x, y, angle);
         this.desc = desc;
         initConstantPassiveSkills();
@@ -27,7 +29,7 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     @Override
-    protected EntityState createEntityState(long time, int size, int x, int y, int angle) {
+    protected GameObjectState createEntityState(long time, int size, int x, int y, int angle) {
         State result = new State(super.createEntityState(time, size, x, y, angle));
         if (getState() != null) {
             result.health = getState().health;
@@ -41,15 +43,15 @@ public class WorldAliveEntity extends WorldEntity {
         for (SkillDesc skill : desc.skills) {
             switch (skill.type) {
                 case GameConstants.SKILL_TYPE_PASSIVE_ENERGY_RECOVER:
-                    attachInfluence(new EntityInfluence(INFLUENCE_CONTINUOUS_ENERGY_RECOVER, time, skill.type, getId(), skill.values[0]));
+                    attachInfluence(new GameObjectInfluence(INFLUENCE_CONTINUOUS_ENERGY_RECOVER, time, skill.type, getId(), skill.values[0]));
                     break;
             }
         }
     }
 
-    public WorldEntity handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
+    public GameObject handleShotSkill(long shotCreatedTime, SkillDesc skill, int x, int y, int angle) {
         // Create shot object
-        SingleShotEntity shot = new SingleShotEntity(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
+        GameObjectSingleShot shot = new GameObjectSingleShot(gameWorld, skill, getId(), shotCreatedTime, x, y, angle);
         // As shot's state already adjusted to server time - pass current time if shot was not destroyed in client's "past"
         long addTime = shot.isDestroyed() ? shotCreatedTime : System.currentTimeMillis();
         gameWorld.addEntity(shot, addTime);
@@ -57,7 +59,7 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     @Override
-    protected boolean applyInfluence(EntityInfluence influence, long time) {
+    protected boolean applyInfluence(GameObjectInfluence influence, long time) {
         switch (influence.type) {
             case GameConstants.INFLUENCE_SINGLE_ENERGY_CONSUMPTION:
                 this.getState().energy = Math.max(0, this.getState().energy - influence.values[0]);
@@ -87,7 +89,7 @@ public class WorldAliveEntity extends WorldEntity {
     }
 
     @Override
-    public void onCollision(WorldEntity entity) {
+    public void onCollision(GameObject entity) {
         super.onCollision(entity);
     }
 
@@ -99,13 +101,13 @@ public class WorldAliveEntity extends WorldEntity {
         return result;
     }
 
-    public static class State extends EntityState {
+    public static class State extends GameObjectState {
 
         private float health;
         private float energy;
 
-        public State(EntityState originalState) {
-            super(originalState.createTime, originalState.getSize(), originalState.getX(), originalState.getY(), originalState.getAngle());
+        public State(GameObjectState originalState) {
+            super(originalState.time, originalState.getSize(), originalState.getX(), originalState.getY(), originalState.getAngle());
         }
 
         public float getHealth() {
@@ -130,8 +132,8 @@ public class WorldAliveEntity extends WorldEntity {
         }
 
         @Override
-        public String toStateString() {
-            return super.toStateString() + "," +
+        public String toSocketString() {
+            return super.toSocketString() + "," +
                     (int) health + "," +
                     (int) energy;
         }
