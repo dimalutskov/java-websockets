@@ -76,8 +76,9 @@ public class WorldEntity {
 
     public void destroy() {
         isDestroyed = true;
-        if (destroyTime == 0) {
-            destroyTime = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
+        if (destroyTime == 0 || destroyTime > time) {
+            destroyTime = time;
         }
     }
 

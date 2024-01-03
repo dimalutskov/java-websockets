@@ -20,11 +20,11 @@ public class SkillEndpoint extends BaseHttpServlet {
         try {
             JsonNode jsonNode = sObjectMapper.readTree(readRequestBody(req));
             WorldAliveEntity entity = (WorldAliveEntity) ServerApp.instance().getRoom().getEntity(jsonNode.get("id").asText());
-            int skillId = jsonNode.get("skillId").asInt();
-            if (GameConstants.SKILL_TYPE_SHOT == skillId) {
+//            int skillId = jsonNode.get("skillId").asInt();
+//            if (GameConstants.SKILL_TYPE_SHOT == skillId) {
                 entity.handleShotSkill(System.currentTimeMillis(), SkillDesc.SKILL_SHOT,
                         entity.getState().getX(), entity.getState().getY(), entity.getState().getAngle());
-            }
+//            }
         } catch (Exception e) {
             sendError(resp, e.getMessage());
         }
