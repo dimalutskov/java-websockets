@@ -14,15 +14,28 @@ public class GameProtocol {
     /**
      * Provides server information and
      * {MSG_TYPE};{SERVER_INFO};
-     * SERVER_INFO: "{SERVER_TIME},{UPDATE_INTERVAL}"
      */
     public static final String SERVER_MSG_RESPONSE_CONNECTED = "connected";
 
     /**
+     * Provides new auth token and player game entities description
+     * {MSG_TYPE};{SERVER_INFO};
+     */
+    public static final String SERVER_MSG_RESPONSE_AUTH = "auth";
+
+    /**
      * Provides objectId for this joined client to retrieve current player state from server state message
-     * {MSG_TYPE};{SERVER_TIME};{OBJECT_STATE}
+     * {MSG_TYPE};{SERVER_TIME};{GAME_WORLD_INFO};{OBJECT_STATE}
+     * GAME_WORLD_INFO: stateBroadcastInterval,worldWidth,worldHeight
      */
     public static final String SERVER_MSG_RESPONSE_JOIN= "join";
+
+    /**
+     * Sent when client detached from game world. When client leave request was performed in active state(
+     * (e.g. battle) - client won't be detached and "false" will be returned
+     * {MSG_TYPE};true(false);
+     */
+    public static final String SERVER_MSG_RESPONSE_LEAVE= "leave";
 
     /**
      * Provides current game state with all required game objects, etc.
@@ -30,7 +43,7 @@ public class GameProtocol {
      * {OBJECT_STATE} = id,type,size,x,y,angle...(rest type related props)
      * {SPACESHIP_STATE} = {OBJECT_STATE},health,energy
      */
-    public static final String SERVER_MSG_STATE = "state";
+    public static final String SERVER_MSG_WORLD_STATE = "state";
 
     /**
      * Provides object which was added to the game world
@@ -43,12 +56,6 @@ public class GameProtocol {
      * {MSG_TYPE};{SERVER_TIME};{OBJECT_DESTROY_TIME};{OBJECT_STATE};
      */
     public static final String SERVER_MSG_OBJECT_DESTROYED = "objectDestroyed";
-
-    /**
-     * Response to client when some skill activated and new game objects created on server side. Proved new object server ids
-     * {MSG_TYPE};{SERVER_TIME};{SKILL_ID};{OBJECT_ID};...{OBJECT_ID};
-     */
-    public static final String SERVER_MSG_RESPONSE_SKILL_OBJECTS = "skillObjects";
 
     /**
      * Notify about any new active influence(skill, shot, recover, etc) applied to any world entity
@@ -69,10 +76,23 @@ public class GameProtocol {
     /////////////////// CLIENT_MESSAGES ///////////////////////////
 
     /**
-     * Join client as a world entity. Entity's id will be provided in response message
+     * Login client. Client game entity's desc will be provided in response
+     * {MSG_TYPE};{AUTH_TOKEN}
+     */
+    public static final String CLIENT_MSG_AUTH = "auth";
+
+    /**
+     * Join client as a world entity. World info and player entity's info will be provided in response message
+     * Client will receive world updates after join
      * {MSG_TYPE};
      */
     public static final String CLIENT_MSG_JOIN = "join";
+
+    /**
+     * Leave game world. If client is in active battle - client won't be detached from game world
+     * {MSG_TYPE};
+     */
+    public static final String CLIENT_MSG_LEAVE = "leave";
 
     /**
      * Provides player movement attributes
@@ -92,9 +112,6 @@ public class GameProtocol {
      * {MSG_TYPE};{SERVER_ESTIMATED_TIME};{skillID};
      */
     public static final String CLIENT_MSG_SKILL_OFF = "skillOFF";
-
-    /// DEBUG MESSAGES
-    public static final String CLIENT_MSG_SET_SERVER_DELAY = "setServerDelay";
 
 }
 

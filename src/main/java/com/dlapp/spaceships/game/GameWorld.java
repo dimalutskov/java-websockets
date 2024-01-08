@@ -1,6 +1,7 @@
 package com.dlapp.spaceships.game;
 
 import com.dlapp.spaceships.game.desc.EntityDesc;
+import com.dlapp.spaceships.game.desc.GameWorldDesc;
 import com.dlapp.spaceships.game.object.GameObjectInfluence;
 import com.dlapp.spaceships.game.object.GameEntity;
 import com.dlapp.spaceships.game.object.GameObject;
@@ -13,6 +14,7 @@ public class GameWorld implements IGameWorld {
     private static final long STATE_BROADCAST_INTERVAL = 1000;
 
     private final String id;
+    private final GameWorldDesc desc;
 
     private final GameWorldCollisions collisionsHandler = new GameWorldCollisions();
     private final List<GameObject> gameObjects = new ArrayList(100); // TODO
@@ -22,13 +24,19 @@ public class GameWorld implements IGameWorld {
 
     private long lastStateBroadcastTime;
 
-    public GameWorld(String id) {
+    public GameWorld(String id, GameWorldDesc desc) {
         this.id = id;
+        this.desc = desc;
         addTestObjects();
     }
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public GameWorldDesc getDesc() {
+        return desc;
     }
 
     @Override
@@ -75,25 +83,21 @@ public class GameWorld implements IGameWorld {
         broadcast(msg);
     }
 
-    public synchronized void connectPlayer(GamePlayer player) {
+    @Override
+    public synchronized void joinPlayer(GamePlayer player) {
         players.add(player);
-
         if (players.size() == 1) {
             startWorld();
         }
-        // Response to client
-        String serverInfo = System.currentTimeMillis() + "," + STATE_BROADCAST_INTERVAL;
-        player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";" + serverInfo + ";");
     }
 
-    public synchronized void disconnectPlayer(GamePlayer player) {
+    @Override
+    public synchronized boolean leavePlayer(GamePlayer player) {
         players.remove(player);
         if (players.size() == 0) {
             stopWorld();
         }
-        if (player.getEntity() != null) {
-            player.getEntity().destroy();
-        }
+        return true;
     }
 
     private void startWorld() {
@@ -116,31 +120,6 @@ public class GameWorld implements IGameWorld {
         if (gameProcessingTimer != null) gameProcessingTimer.cancel();
     }
 
-    public synchronized void onClientMessage(GamePlayer player, String message) {
-        System.out.println("@@@ handleMessage: " + message);
-        try {
-            String[] split = message.split(";");
-            List<GameObject> addedObjects = new ArrayList<>();
-            player.onMessage(split, addedObjects);
-
-            if (split[0].equals(GameProtocol.CLIENT_MSG_JOIN)) {
-                player.send(GameProtocol.SERVER_MSG_RESPONSE_JOIN + ";" +
-                        System.currentTimeMillis() + ";" +
-                        player.getEntity().getStateString());
-            } else if (split[0].equals(GameProtocol.CLIENT_MSG_SKILL_ON) && !addedObjects.isEmpty()) {
-                // Response client with new objects ids
-                StringBuilder responseMsg = new StringBuilder(GameProtocol.SERVER_MSG_RESPONSE_SKILL_OBJECTS).append(";")
-                        .append(split[1]).append(";"); // skillId
-                for (GameObject object : addedObjects) {
-                    responseMsg.append(object.getId()).append(";");
-                }
-                player.send(responseMsg.toString());
-            }
-        } catch (Exception e) {
-            System.out.println("Error parsing client message: " + message + ". " + e);
-        }
-    }
-
     private synchronized void proceed(long time) {
         collisionsHandler.checkCollisions();
 
@@ -159,23 +138,23 @@ public class GameWorld implements IGameWorld {
         broadcast(GameProtocol.SERVER_MSG_OBJECT_ADDED + ";" +
                 System.currentTimeMillis() + ";" +
                 time + ";" +
-                object.getStateString());
+                object.toSocketString());
     }
 
     private void onObjectDestroyed(GameObject object, long time) {
         broadcast(GameProtocol.SERVER_MSG_OBJECT_DESTROYED + ";" +
                 System.currentTimeMillis() + ";" +
                 time + ";" +
-                object.getStateString());
+                object.toSocketString());
     }
 
     private synchronized void updateWorldState(long time) {
         StringBuilder stateString = new StringBuilder()
-                .append(GameProtocol.SERVER_MSG_STATE).append(";");
+                .append(GameProtocol.SERVER_MSG_WORLD_STATE).append(";");
         stateString.append(time).append(";");
 
         for (GameObject obj : gameObjects) {
-            stateString.append(obj.getStateString()).append(";");
+            stateString.append(obj.toSocketString()).append(";");
         }
 
         broadcast(stateString.toString());

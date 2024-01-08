@@ -304,25 +304,27 @@ class EditEntityContainer {
 
 class WebSocketManager {
 	
-	constructor(gameWorld, url, connectionCallback) {
+	constructor(gameWorld, url, updateCallback) {
 		this.gameWorld = gameWorld;
 		this.url = url;
-		this.connectionCallback = connectionCallback;
+		this.updateCallback = updateCallback;
 		this.isConnected = false;
+		this.isJoin = false;
 	}
 
 	connect() {
 	    this.webSocket = new WebSocket(this.url);
         this.webSocket.onopen = event => {
             this.isConnected = true;
-            this.connectionCallback(true);
+            this.updateCallback();
         };
         this.webSocket.onerror = event => {
-           this.connectionCallback(false);
+           this.updateCallback();
         };
         this.webSocket.onclose = event => {
             this.isConnected = false;
-            this.connectionCallback(false);
+            this.isJoin = false;
+            this.updateCallback();
         };
         this.webSocket.onmessage = event => {
         	this.handleMessage(event);
@@ -342,6 +344,14 @@ class WebSocketManager {
 		console.log("RECEIVE: " + event.data);
 		const split = event.data.split(";");
 		switch (split[0]) {
+		    case 'join':
+		        this.isJoin = true;
+		        this.updateCallback();
+		        break;
+		    case 'leave':
+            	this.isJoin = false;
+            	this.updateCallback();
+            	break;
 			case 'state':
 				this.handleStateMessage(split);
 				break;
@@ -385,15 +395,20 @@ var serverUrl = "https://dl-websockets-25f48806cc22.herokuapp.com";
 
 var gameWorld = new GameWorld(document.getElementById("canvas"));
 var editEntityContainer = new EditEntityContainer(gameWorld);
-var webSocketManager = new WebSocketManager(gameWorld, webSocketUrl, connected => {
+var webSocketManager = new WebSocketManager(gameWorld, webSocketUrl, () => {
     var connectButton = document.getElementById("buttonConnect");
-    if (connected == true) {
+    var joinButton = document.getElementById("buttonJoin");
+    if (webSocketManager.isConnected == true) {
         connectButton.disabled = false;
         connectButton.innerHTML = "Disconnect"
+        joinButton.disabled = false;
+        joinButton.innerHTML = webSocketManager.isJoin == true ? "Leave" : "Join";
         document.getElementById("buttonAdd").disabled = false;
     } else {
-        document.getElementById("buttonConnect").disabled = false;
-        document.getElementById("buttonConnect").innerHTML = "Connect";
+        connectButton.disabled = false;
+        connectButton.innerHTML = "Connect";
+        joinButton.disabled = true;
+        joinButton.innerHTML = "Join";
         document.getElementById("buttonAdd").disabled = true;
     }
 });
@@ -428,6 +443,15 @@ function clickConnect() {
     } else {
         webSocketManager.connect();
         document.getElementById("buttonConnect").disabled = true;
+    }
+}
+
+function clickJoin() {
+    document.getElementById("buttonJoin").disabled = true;
+    if (webSocketManager.isJoin == true) {
+        webSocketManager.sendMessage("leave");
+    } else {
+        webSocketManager.sendMessage("join");
     }
 }
 

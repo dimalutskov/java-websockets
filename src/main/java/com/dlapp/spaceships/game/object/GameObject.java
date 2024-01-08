@@ -157,7 +157,7 @@ public class GameObject {
         System.out.println("@@@ onCollisionEnd " + getId() + " " + gameObject.getId());
     }
 
-    public final String getStateString() {
+    public final String toSocketString() {
         return id + "," +
                 type + "," +
                 getState().toSocketString();
