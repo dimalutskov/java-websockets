@@ -59,13 +59,15 @@ public class GameObject {
     public GameObjectState findState(long time) {
         long timeDiff = Long.MAX_VALUE;
         GameObjectState nearestState = null;
-        for (GameObjectState state : states) {
-            long diff = Math.abs(state.time - time);
-            if (diff > timeDiff) {
-                return nearestState;
+        synchronized (states) {
+            for (GameObjectState state : states) {
+                long diff = Math.abs(state.time - time);
+                if (diff > timeDiff) {
+                    return nearestState;
+                }
+                nearestState = state;
+                timeDiff = diff;
             }
-            nearestState = state;
-            timeDiff = diff;
         }
         return getState();
     }
@@ -114,23 +116,31 @@ public class GameObject {
     }
 
     public void attachInfluence(GameObjectInfluence influence) {
-        influences.add(influence);
+        synchronized (influences) {
+            influences.add(influence);
+        }
     }
 
     public void detachInfluence(GameObjectInfluence influence) {
-        influences.remove(influence);
-        gameWorld.onGameObjectDetachInfluence(this, influence);
+        synchronized (influences) {
+            influences.remove(influence);
+            gameWorld.onGameObjectDetachInfluence(this, influence);
+        }
     }
 
     public void proceed(long time) {
         movement.step(time);
 
-        addNewState(time);
-        if (time - states.get(states.size() - 1).time > KEEP_STATES_TIME) {
-            states.remove(states.size() - 1);
+        synchronized (states) {
+            addNewState(time);
+            if (time - states.get(states.size() - 1).time > KEEP_STATES_TIME) {
+                states.remove(states.size() - 1);
+            }
         }
 
-        influences.removeIf(i -> applyInfluence(i, time));
+        synchronized (influences) {
+            influences.removeIf(i -> applyInfluence(i, time));
+        }
 
         if (destroyTime > 0 && time > destroyTime) {
             destroy();
