@@ -37,6 +37,7 @@ public class WebSocketEndpoint {
             connectedPlayers.get(session.getId()).onMessage(split);
         } catch (Exception e) {
             System.out.println("Error processing client message: " + message + ". " + e);
+            e.printStackTrace();
         }
 
     }

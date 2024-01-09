@@ -113,13 +113,6 @@ public class GameWorldCollisions {
     private static boolean hasCollision(GameObject gameObject1, GameObject gameObject2, long time) {
         GameObjectState state1 = time == 0 ? gameObject1.getState() : gameObject1.findState(time);
         GameObjectState state2 = time == 0 ? gameObject2.getState() : gameObject2.findState(time);
-
-        if (time != 0) {
-            String o1 = gameObject1.getId() + " " + gameObject1.findState(time).time + " " + gameObject1.findState(time).toSocketString();
-            String o2 = gameObject2.getId() + " " + gameObject2.findState(time).time + " " + gameObject2.findState(time).toSocketString();
-            System.out.println("@@@ Check collision " + o1 + " || " + o2);
-        }
-
         return MathUtils.intersects(state1.getRect(), state2.getRect());
     }
 
