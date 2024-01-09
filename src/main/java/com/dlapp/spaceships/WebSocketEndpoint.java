@@ -11,21 +11,19 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(value = "/websocket")
 public class WebSocketEndpoint {
 
-    private static List<GamePlayer> connectedPlayers = new ArrayList<>();
-
-    private GamePlayer player;
+    private static Map<String, GamePlayer> connectedPlayers = new ConcurrentHashMap<>();
 
     @OnOpen
     public void onOpen(Session session) {
         System.out.println("@@@ onOpen " + this + " " + session.getId());
-        player = new GamePlayer(session);
-        connectedPlayers.add(player);
+        GamePlayer player = new GamePlayer(session);
+        connectedPlayers.put(session.getId(), player);
 
         // Response to client
         player.send(GameProtocol.SERVER_MSG_RESPONSE_CONNECTED + ";");
@@ -36,7 +34,7 @@ public class WebSocketEndpoint {
         System.out.println("@@@ onMessage: " + message);
         try {
             String[] split = message.split(";");
-            player.onMessage(split);
+            connectedPlayers.get(session.getId()).onMessage(split);
         } catch (Exception e) {
             System.out.println("Error processing client message: " + message + ". " + e);
         }
@@ -47,7 +45,10 @@ public class WebSocketEndpoint {
     public void onClose(Session session) {
         System.out.println("@@@ onClose " + this + " " + session.getId());
 
-        player.onDisconnect();
+        GamePlayer player = connectedPlayers.remove(session.getId());
+        if (player != null) {
+            player.onDisconnect();
+        }
     }
 
     @OnError

@@ -97,6 +97,9 @@ public class GameWorld implements IGameWorld {
         if (players.size() == 0) {
             stopWorld();
         }
+        if (player.getEntity() != null) {
+            player.getEntity().destroy();
+        }
         return true;
     }
 
