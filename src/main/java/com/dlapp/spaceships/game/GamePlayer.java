@@ -43,7 +43,7 @@ public class GamePlayer {
         return Objects.hash(session.getId());
     }
 
-    public void send(String message) {
+    public synchronized void send(String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
